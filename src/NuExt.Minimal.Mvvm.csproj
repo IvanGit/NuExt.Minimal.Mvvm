@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net8.0;net6.0;net462</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageTags>nuext;minimal;mvvm;wpf;ui;viewmodel;command;relaycommand;asynccommand;multiple;concurrent;async</PackageTags>
+    <Description>NuExt.Minimal.Mvvm is an MVVM framework that offers a minimal set of components necessary to get started with the Model-View-ViewModel (MVVM) pattern.
+
+Commonly Used Types:
+Minimal.Mvvm.AsyncCommand
+Minimal.Mvvm.AsyncCommand&lt;T&gt;
+Minimal.Mvvm.BindableBase
+Minimal.Mvvm.RelayCommand
+Minimal.Mvvm.RelayCommand&lt;T&gt;
+Minimal.Mvvm.ViewModelBase</Description>
+    <Version>0.1.0</Version>
+    <RootNamespace />
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>logo128.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/IvanGit/NuExt.Minimal.Mvvm</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" Key="00240000048000009400000006020000002400005253413100040000010001006fe78604a88c4435cd66f3783ab59c2a7cc5f1f20103d9274026db1aafd95fb317561a5cb328cbc43a2904e476382661c08fe9381e1f8ca562759b0040e2a648158be90ab2fbf35a7cd7a0db2f8d6c6774129f84bdf098b75c7fc61431c035ad0fc068185e70b1bd775c0b770e87f8cbf01559ab55146c9f4ecc8ebdaa85e5c0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\logo128.png" Pack="true" PackagePath="\" />
+    <None Include=".\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
