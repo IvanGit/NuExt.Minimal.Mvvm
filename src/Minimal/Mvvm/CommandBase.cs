@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Windows.Input;
 
 namespace Minimal.Mvvm
@@ -10,6 +11,8 @@ namespace Minimal.Mvvm
     /// <typeparam name="T">The type of the command parameter.</typeparam>
     public abstract class CommandBase<T>: ICommand<T>, IRelayCommand, INotifyPropertyChanged
     {
+        private static readonly Type s_genericType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
         private readonly Func<T?, bool>? _canExecute;
         protected internal volatile int ExecutingCount;
 
@@ -76,13 +79,60 @@ namespace Minimal.Mvvm
         /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
         public abstract void Execute(T? parameter);
 
+        /// <summary>
+        /// Converts the given parameter to the specified generic type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The target type to which the parameter should be converted.</typeparam>
+        /// <param name="parameter">The parameter to be converted. Can be null.</param>
+        /// <param name="throwCastException">
+        /// If true, an exception will be thrown if the conversion fails; otherwise, default value of type <typeparamref name="T"/> will be returned.
+        /// </param>
+        /// <returns>
+        /// The converted parameter of type <typeparamref name="T"/>, or default value of type <typeparamref name="T"/> if the conversion fails and <paramref name="throwCastException"/> is false.
+        /// </returns>
+        protected T? GetCommandParameter(object? parameter, bool throwCastException = true)
+        {
+            switch (parameter)
+            {
+                case null:
+                    return (s_genericType.IsValueType && !throwCastException) ? default : (T?)parameter;
+                case T @param:
+                    return @param;
+                default:
+                    try
+                    {
+                        if (s_genericType.IsEnum)
+                        {
+                            return parameter switch
+                            {
+                                string s => (T?)Enum.Parse(s_genericType, s, false),
+                                _ => (T?)Enum.ToObject(s_genericType, parameter)
+                            };
+                        }
+                        if (parameter is IConvertible)
+                        {
+                            return (T?)Convert.ChangeType(parameter, s_genericType, CultureInfo.InvariantCulture);
+                        }
+
+                        if (!throwCastException) return default;
+                        return (T?)parameter;
+                    }
+                    catch
+                    {
+                        if (!throwCastException) return default;
+                        throw;
+                    }
+            }
+        }
+
         bool ICommand.CanExecute(object? parameter)
         {
-            return CanExecute((T?)parameter);
+            return CanExecute(GetCommandParameter(parameter, false));
         }
+
         void ICommand.Execute(object? parameter)
         {
-            Execute((T?)parameter);
+            Execute(GetCommandParameter(parameter));
         }
 
         protected virtual bool OnExecuted()

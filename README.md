@@ -19,7 +19,10 @@
   - **`Minimal.Mvvm.ViewModelBase`**: A base class for ViewModels, providing a foundation for building complex view models.
 
 - **Concurrent Command Execution**:
-  - All command types (`RelayCommand`, `RelayCommand<T>`, `AsyncCommand`, `AsyncCommand<T>`) support concurrent executions. This allows multiple invocations of the same command simultaneously without interfering with other executions.
+  - All `IRelayCommand` command types (`RelayCommand`, `RelayCommand<T>`, `AsyncCommand`, `AsyncCommand<T>`) support concurrent executions. This allows multiple invocations of the same command simultaneously without interfering with other executions.
+
+- **CompositeCommand Implementation**:
+  - **`Minimal.Mvvm.CompositeCommand`**: Represents a command that aggregates multiple commands and executes them sequentially. This is useful when you need to perform a series of actions as a single command operation.
 
 ### Installation
 

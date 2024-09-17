@@ -10,19 +10,16 @@ namespace NuExt.Minimal.Mvvm.Tests
         [Test]
         public async Task MultipleExecuteTestAsync()
         {
+            int executedCount = 0;
             RelayCommand command = null!;
             command = new RelayCommand(Execute);
 
-            bool isExecuting = false;
             (command as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
            
             for (int i = 0; i < 100; i++)
             {
-                Assert.Multiple(() =>
-                {
-                    Assert.That(isExecuting, Is.False);
-                    Assert.That(command.IsExecuting, Is.False);
-                });
+                executedCount = 0;
+                Assert.That(command.IsExecuting, Is.False);
                 var tasks = new List<Task>();
                 for (int j = 0; j < 5; j++)
                 {
@@ -32,7 +29,7 @@ namespace NuExt.Minimal.Mvvm.Tests
                 Assert.Multiple(() =>
                 {
                     Assert.That(command.IsExecuting, Is.False);
-                    Assert.That(isExecuting, Is.False);
+                    Assert.That(executedCount, Is.EqualTo(5));
                 });
             }
 
@@ -40,6 +37,7 @@ namespace NuExt.Minimal.Mvvm.Tests
 
             void Execute()
             {
+                Interlocked.Increment(ref executedCount);
                 Assert.That(command.IsExecuting, Is.True);
                 Progress.WriteLine($"[{command.GetType().Name}] Thread={Environment.CurrentManagedThreadId, -2}, ExecutingCount={command.ExecutingCount}");
             }
@@ -54,7 +52,6 @@ namespace NuExt.Minimal.Mvvm.Tests
                 if (e.PropertyName == nameof(IRelayCommand.IsExecuting))
                 {
                     Progress.WriteLine($"[{command.GetType().Name}] Thread={Environment.CurrentManagedThreadId, -2}, ExecutingCount={command.ExecutingCount}, IsExecuting={command.IsExecuting}");
-                    isExecuting = command.IsExecuting;
                 }
             }
         }

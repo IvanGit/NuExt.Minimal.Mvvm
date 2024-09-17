@@ -18,6 +18,7 @@ namespace NuExt.Minimal.Mvvm.Tests
             for (int i = 0; i < 100; i++)
             {
                 executedCount = 0;
+                Assert.That(command.IsExecuting, Is.False);
                 for (int j = 0; j < 5; j++)
                 {
                     _ = Task.Run(() => command.Execute(null));

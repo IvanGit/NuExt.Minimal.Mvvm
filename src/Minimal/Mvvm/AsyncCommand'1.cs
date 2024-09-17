@@ -209,7 +209,7 @@ namespace Minimal.Mvvm
         /// <returns>A task representing the asynchronous operation.</returns>
         Task IAsyncCommand.ExecuteAsync(object? parameter)
         {
-            return ExecuteAsync((T?)parameter);
+            return ExecuteAsync(GetCommandParameter(parameter));
         }
 
         /// <summary>
@@ -220,13 +220,13 @@ namespace Minimal.Mvvm
         /// <returns>A task representing the asynchronous operation.</returns>
         Task IAsyncCommand.ExecuteAsync(object? parameter, CancellationToken cancellationToken)
         {
-            return ExecuteAsync((T?)parameter, cancellationToken);
+            return ExecuteAsync(GetCommandParameter(parameter), cancellationToken);
         }
 
         protected override bool OnExecuted()
         {
             Debug.Assert(CancellationTokenSource != null, $"{nameof(CancellationTokenSource)} is null");
-            bool result = ExecutingTasks.TryRemove(CancellationTokenSource, out _);
+            bool result = ExecutingTasks.TryRemove(CancellationTokenSource!, out _);
             Debug.Assert(result);
             CancellationTokenSource = null;
             return base.OnExecuted();
@@ -235,7 +235,7 @@ namespace Minimal.Mvvm
         protected override bool OnExecuting()
         {
             Debug.Assert(CancellationTokenSource != null, $"{nameof(CancellationTokenSource)} is null");
-            bool result = ExecutingTasks.TryAdd(CancellationTokenSource, Environment.CurrentManagedThreadId);
+            bool result = ExecutingTasks.TryAdd(CancellationTokenSource!, Environment.CurrentManagedThreadId);
             Debug.Assert(result);
             return base.OnExecuting();
         }

@@ -12,10 +12,11 @@ Commonly Used Types:
 Minimal.Mvvm.AsyncCommand
 Minimal.Mvvm.AsyncCommand&lt;T&gt;
 Minimal.Mvvm.BindableBase
+Minimal.Mvvm.CompositeCommand
 Minimal.Mvvm.RelayCommand
 Minimal.Mvvm.RelayCommand&lt;T&gt;
 Minimal.Mvvm.ViewModelBase</Description>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
