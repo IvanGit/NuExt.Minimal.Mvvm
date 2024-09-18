@@ -1,4 +1,7 @@
-﻿namespace Minimal.Mvvm
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace Minimal.Mvvm
 {
     /// <summary>
     /// Interface for an asynchronous command with a parameter of type T, extending 

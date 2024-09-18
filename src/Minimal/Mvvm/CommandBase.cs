@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
 using System.Windows.Input;
 
 namespace Minimal.Mvvm
@@ -82,7 +84,7 @@ namespace Minimal.Mvvm
         /// <summary>
         /// Converts the given parameter to the specified generic type <typeparamref name="T"/>.
         /// </summary>
-        /// <typeparam name="T">The target type to which the parameter should be converted.</typeparam>
+        /// <typeparamref name="T">The target type to which the parameter should be converted.</typeparamref>
         /// <param name="parameter">The parameter to be converted. Can be null.</param>
         /// <param name="throwCastException">
         /// If true, an exception will be thrown if the conversion fails; otherwise, default value of type <typeparamref name="T"/> will be returned.

@@ -1,4 +1,6 @@
-﻿namespace Minimal.Mvvm
+﻿using System;
+
+namespace Minimal.Mvvm
 {
     /// <summary>
     /// A command that relays its functionality to other objects by invoking delegates.

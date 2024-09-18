@@ -45,10 +45,12 @@ namespace NuExt.Minimal.Mvvm.Tests
             {
                 Interlocked.Increment(ref executedCount);
                 var cts = command.CancellationTokenSource!;
+#pragma warning disable NUnit2045 // Use Assert.Multiple
                 Assert.That(cts, Is.Not.Null);
                 Assert.That(command.ExecutingTasks.ContainsKey(cts), Is.True);
                 Assert.That(command.ExecutingTasks[cts], Is.EqualTo(Environment.CurrentManagedThreadId));
                 Assert.That(command.IsExecuting, Is.True);
+#pragma warning restore NUnit2045 // Use Assert.Multiple
                 await Progress.WriteLineAsync($"[{command.GetType().Name}] Thread={Environment.CurrentManagedThreadId,-2}, ExecutingCount={command.ExecutingCount}");
                 await Task.Yield();
                 Assert.That(command.CancellationTokenSource, Is.EqualTo(cts));

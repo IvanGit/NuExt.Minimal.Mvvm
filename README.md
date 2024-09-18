@@ -38,6 +38,22 @@ Or through the Visual Studio package manager:
 2. Search for `NuExt.Minimal.Mvvm`.
 3. Click "Install".
 
+### Source Code Package
+
+In addition to the standard package, there is also a source code package available: `NuExt.Minimal.Mvvm.Sources`. This package allows you to embed the entire framework directly into your application, enabling easier source code exploring and debugging.
+
+To install the source code package, use the following command:
+
+```sh
+dotnet add package NuExt.Minimal.Mvvm.Sources
+```
+
+Or through the Visual Studio package manager:
+
+1. Go to `Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...`.
+2. Search for `NuExt.Minimal.Mvvm.Sources`.
+3. Click "Install".
+
 ### Usage
 
 #### Example Using AsyncCommand with CancellationTokenSource Support

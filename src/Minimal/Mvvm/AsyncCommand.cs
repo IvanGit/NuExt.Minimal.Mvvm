@@ -1,4 +1,7 @@
-﻿namespace Minimal.Mvvm
+﻿using System;
+using System.Threading.Tasks;
+
+namespace Minimal.Mvvm
 {
     /// <summary>
     /// Represents an asynchronous command that does not take any parameters.
