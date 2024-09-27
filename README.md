@@ -67,7 +67,7 @@ public class MyViewModel : ViewModelBase
     public MyViewModel()
     {
         MyCommand = new AsyncCommand(ExecuteAsync, CanExecute);
-        CancelCommand = new RelayCommand(ExecuteCancel, CanCancel);
+        CancelCommand = new RelayCommand(Cancel, CanCancel);
     }
 
     private async Task ExecuteAsync()
@@ -91,7 +91,7 @@ public class MyViewModel : ViewModelBase
         return true;
     }
 
-    private void ExecuteCancel()
+    private void Cancel()
     {
         // Sends request to cancel the MyCommand execution
         MyCommand.Cancel();

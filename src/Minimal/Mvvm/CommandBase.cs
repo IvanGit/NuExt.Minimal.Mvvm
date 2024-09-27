@@ -13,8 +13,6 @@ namespace Minimal.Mvvm
     /// <typeparam name="T">The type of the command parameter.</typeparam>
     public abstract class CommandBase<T>: ICommand<T>, IRelayCommand, INotifyPropertyChanged
     {
-        private static readonly Type s_genericType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-
         private readonly Func<T?, bool>? _canExecute;
         protected internal volatile int ExecutingCount;
 
@@ -94,37 +92,7 @@ namespace Minimal.Mvvm
         /// </returns>
         protected T? GetCommandParameter(object? parameter, bool throwCastException = true)
         {
-            switch (parameter)
-            {
-                case null:
-                    return (s_genericType.IsValueType && !throwCastException) ? default : (T?)parameter;
-                case T @param:
-                    return @param;
-                default:
-                    try
-                    {
-                        if (s_genericType.IsEnum)
-                        {
-                            return parameter switch
-                            {
-                                string s => (T?)Enum.Parse(s_genericType, s, false),
-                                _ => (T?)Enum.ToObject(s_genericType, parameter)
-                            };
-                        }
-                        if (parameter is IConvertible)
-                        {
-                            return (T?)Convert.ChangeType(parameter, s_genericType, CultureInfo.InvariantCulture);
-                        }
-
-                        if (!throwCastException) return default;
-                        return (T?)parameter;
-                    }
-                    catch
-                    {
-                        if (!throwCastException) return default;
-                        throw;
-                    }
-            }
+            return Cast<T>.To(parameter, throwCastException);
         }
 
         bool ICommand.CanExecute(object? parameter)
