@@ -8,7 +8,7 @@ namespace Minimal.Mvvm
     {
         public bool Invert { get; set; }
 
-        protected override Visibility ConvertTo(bool value, bool? parameter, CultureInfo culture)
+        protected override Visibility ConvertTo(bool value, bool? parameter, CultureInfo? culture)
         {
             if (!(value ^ Invert))
             {

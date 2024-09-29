@@ -24,6 +24,9 @@
 - **CompositeCommand Implementation**:
   - **`Minimal.Mvvm.CompositeCommand`**: Represents a command that aggregates multiple commands and executes them sequentially. This is useful when you need to perform a series of actions as a single command operation.
 
+- **Service Provider Integration**:
+  - **`Minimal.Mvvm.ServiceProvider`**: A service provider class that allows for easy registration and resolution of services, facilitating dependency injection within your application.
+
 ### Installation
 
 You can install `NuExt.Minimal.Mvvm` via [NuGet](https://www.nuget.org/):
@@ -116,6 +119,35 @@ public class MyModel : BindableBase
     {
         get => _name;
         set => SetProperty(ref _name, value);
+    }
+}
+```
+
+#### Example Using ServiceProvider
+
+```csharp
+public class MyService
+{
+    public string GetData() => "Hello from MyService!";
+}
+
+public class MyViewModel : ViewModelBase
+{
+    public IRelayCommand MyCommand { get; }
+
+    public MyViewModel()
+    {
+        // Register services
+        ServiceProvider.Default.RegisterService<MyService>();
+        
+        MyCommand = new RelayCommand(() =>
+        {
+            // Resolve and use services
+            var myService = ServiceProvider.Default.GetService<MyService>();
+
+            var data = myService.GetData();
+            // Use the data
+        });
     }
 }
 ```

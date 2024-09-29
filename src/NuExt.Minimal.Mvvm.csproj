@@ -16,8 +16,9 @@ Minimal.Mvvm.BindableBase
 Minimal.Mvvm.CompositeCommand
 Minimal.Mvvm.RelayCommand
 Minimal.Mvvm.RelayCommand&lt;T&gt;
+Minimal.Mvvm.ServiceProvider
 Minimal.Mvvm.ViewModelBase</Description>
-    <Version>0.1.3</Version>
+    <Version>0.1.4</Version>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>

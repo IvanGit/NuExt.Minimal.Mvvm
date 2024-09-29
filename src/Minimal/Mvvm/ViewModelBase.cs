@@ -22,9 +22,6 @@ namespace Minimal.Mvvm
         /// </summary>
         protected ViewModelBase()
         {
-#if !NETFRAMEWORK && !WINDOWS
-            Thread = Thread.CurrentThread;
-#endif
         }
 
         #region Properties
@@ -50,7 +47,7 @@ namespace Minimal.Mvvm
 #if NETFRAMEWORK || WINDOWS
             => Dispatcher.Thread;
 #else
-        { get; }
+        { get; } = Thread.CurrentThread;
 #endif
 
         #endregion
