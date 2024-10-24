@@ -17,9 +17,11 @@ Minimal.Mvvm.CompositeCommand
 Minimal.Mvvm.RelayCommand
 Minimal.Mvvm.RelayCommand&lt;T&gt;
 Minimal.Mvvm.ServiceProvider
-Minimal.Mvvm.ViewModelBase</Description>
-    <Version>0.1.4</Version>
-    <RootNamespace />
+Minimal.Mvvm.ViewModelBase
+Minimal.Mvvm.UI.EventTrigger
+Minimal.Mvvm.UI.KeyTrigger</Description>
+    <Version>0.1.5</Version>
+    <RootNamespace>Minimal.Mvvm</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -42,7 +44,8 @@ Minimal.Mvvm.ViewModelBase</Description>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IncludeSource)' == 'true'">
-    <Content Include="Minimal\Mvvm\**\*.cs" Pack="true" PackagePath="contentFiles/cs/any/Minimal.Mvvm" BuildAction="Compile" />
+    <Content Include="**\*.cs" Pack="true" PackagePath="contentFiles/cs/any/Minimal.Mvvm" BuildAction="Compile" />
+    <Content Remove="obj\**" />
   </ItemGroup>
 
   <ItemGroup>

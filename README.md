@@ -27,6 +27,10 @@
 - **Service Provider Integration**:
   - **`Minimal.Mvvm.ServiceProvider`**: A service provider class that allows for easy registration and resolution of services, facilitating dependency injection within your application.
 
+- **Interactivity Support**:
+  - **`Minimal.Mvvm.UI.EventTrigger`**: Executes a command in response to an event, with support for converting event arguments before passing them to the command or passing the event arguments directly.
+  - **`Minimal.Mvvm.UI.KeyTrigger`**: Executes a command in response to a specific key gesture, with default association to the UIElement's KeyUp event.
+
 ### Installation
 
 You can install `NuExt.Minimal.Mvvm` via [NuGet](https://www.nuget.org/):
@@ -150,6 +154,65 @@ public class MyViewModel : ViewModelBase
         });
     }
 }
+```
+
+#### Example Using Interactivity in XAML
+
+You can use `EventTrigger` and `KeyTrigger` in your XAML to bind events and key gestures to commands in your ViewModel. Here's an example of a window that binds `ContentRendered`, `Loaded` events, and a `CTRL+O` key gesture to commands in the ViewModel.
+
+##### ViewModel
+
+```csharp
+public class MyViewModel : ViewModelBase
+{
+    public ICommand ContentRenderedCommand { get; }
+    public ICommand LoadedCommand { get; }
+    public ICommand OpenFileCommand { get; }
+
+    public MyViewModel()
+    {
+        ContentRenderedCommand = new RelayCommand(OnContentRendered);
+        LoadedCommand = new RelayCommand(OnLoaded);
+        OpenFileCommand = new RelayCommand(OnOpenFile);
+    }
+
+    private void OnContentRendered()
+    {
+        // Logic when content is rendered
+    }
+
+    private void OnLoaded()
+    {
+        // Logic when window is loaded
+    }
+
+    private void OnOpenFile()
+    {
+        // Logic to open a file
+    }
+}
+```
+
+##### XAML
+
+```xml
+<Window x:Class="YourNamespace.MyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:minimal="clr-namespace:Minimal.Mvvm.UI;assembly=NuExt.Minimal.Mvvm"
+        Title="My Window">
+    <Window.DataContext>
+        <local:MyViewModel />
+    </Window.DataContext>
+    <minimal:Interaction.Behaviors>
+        <minimal:EventTrigger EventName="ContentRendered" Command="{Binding ContentRenderedCommand}"/>
+        <minimal:EventTrigger EventName="Loaded" Command="{Binding LoadedCommand}" />
+        <minimal:KeyTrigger Gesture="CTRL+O" Command="{Binding OpenFileCommand}" />
+    </minimal:Interaction.Behaviors>
+    <Grid>
+        <!-- Your UI elements here -->
+    </Grid>
+</Window>
 ```
 
 ### Contributing

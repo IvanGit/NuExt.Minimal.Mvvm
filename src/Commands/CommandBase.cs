@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.Threading;
 using System.Windows.Input;
 
@@ -26,6 +25,11 @@ namespace Minimal.Mvvm
         }
 
         #region Properties
+
+        /// <summary>
+        /// Gets or sets a value indicating whether concurrent execution of the command is allowed.
+        /// </summary>
+        public bool AllowConcurrentExecution { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether the command is currently executing.
@@ -69,6 +73,10 @@ namespace Minimal.Mvvm
         [DebuggerStepThrough]
         public bool CanExecute(T? parameter)
         {
+            if (!AllowConcurrentExecution && IsExecuting)
+            {
+                return false;
+            }
             return _canExecute?.Invoke(parameter) ?? true;
         }
 

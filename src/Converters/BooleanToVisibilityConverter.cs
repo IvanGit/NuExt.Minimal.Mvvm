@@ -2,19 +2,22 @@
 using System.Globalization;
 using System.Windows;
 
-namespace Minimal.Mvvm
+namespace Minimal.Mvvm.UI
 {
-    public sealed class BooleanToVisibilityConverter : ValueConverterBase<bool, Visibility, bool?>
+    public sealed class BooleanToVisibilityConverter : ValueConverterBase<bool, Visibility, object?>
     {
+        public bool HideInsteadOfCollapse { get; set; }
+
         public bool Invert { get; set; }
 
-        protected override Visibility ConvertTo(bool value, bool? parameter, CultureInfo? culture)
+        protected override Visibility ConvertTo(bool value, object? parameter, CultureInfo? culture)
         {
-            if (!(value ^ Invert))
-            {
-                return Visibility.Collapsed;
-            }
-            return Visibility.Visible;
+            return (value ^ Invert) ? Visibility.Visible : HideInsteadOfCollapse ? Visibility.Hidden : Visibility.Collapsed;
+        }
+
+        protected override bool ConvertFrom(Visibility value, object? parameter, CultureInfo? culture)
+        {
+            return (value == Visibility.Visible) ^ Invert;
         }
     }
 }

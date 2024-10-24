@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace Minimal.Mvvm
+namespace Minimal.Mvvm.UI
 {
     [DebuggerStepThrough]
     public abstract class ValueConverterBase<TFrom, TTo, TParameter> : IValueConverter

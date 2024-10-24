@@ -12,7 +12,7 @@ namespace NuExt.Minimal.Mvvm.Tests
         {
             int executedCount = 0;
             RelayCommand command = null!;
-            command = new RelayCommand(Execute);
+            command = new RelayCommand(Execute) { AllowConcurrentExecution = true };
 
             (command as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
            
@@ -21,7 +21,8 @@ namespace NuExt.Minimal.Mvvm.Tests
                 executedCount = 0;
                 Assert.That(command.IsExecuting, Is.False);
                 var tasks = new List<Task>();
-                for (int j = 0; j < 5; j++)
+                int num = 5;
+                for (int j = 0; j < num; j++)
                 {
                     tasks.Add(Task.Run(() => ExecuteCommand(null)));
                 }
@@ -29,7 +30,7 @@ namespace NuExt.Minimal.Mvvm.Tests
                 Assert.Multiple(() =>
                 {
                     Assert.That(command.IsExecuting, Is.False);
-                    Assert.That(executedCount, Is.EqualTo(5));
+                    Assert.That(executedCount, Is.EqualTo(num));
                 });
             }
 

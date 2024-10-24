@@ -11,7 +11,7 @@ namespace NuExt.Minimal.Mvvm.Tests
         {
             int executedCount = 0;
             AsyncCommand command = null!;
-            command = new AsyncCommand(ExecuteAsync);
+            command = new AsyncCommand(ExecuteAsync) { AllowConcurrentExecution = true };
 
             (command as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
 
@@ -19,11 +19,12 @@ namespace NuExt.Minimal.Mvvm.Tests
             {
                 executedCount = 0;
                 Assert.That(command.IsExecuting, Is.False);
-                for (int j = 0; j < 5; j++)
+                int num = 5;
+                for (int j = 0; j < num; j++)
                 {
                     _ = Task.Run(() => command.Execute(null));
                 }
-                while (Interlocked.CompareExchange(ref executedCount, 0, 0) != 5)
+                while (Interlocked.CompareExchange(ref executedCount, 0, 0) != num)
                 {
                     await Task.Delay(10).ConfigureAwait(false);
                 }
@@ -35,7 +36,7 @@ namespace NuExt.Minimal.Mvvm.Tests
                 Assert.Multiple(() =>
                 {
                     Assert.That(command.IsExecuting, Is.False);
-                    Assert.That(executedCount, Is.EqualTo(5));
+                    Assert.That(executedCount, Is.EqualTo(num));
                 });
             }
 
@@ -70,7 +71,7 @@ namespace NuExt.Minimal.Mvvm.Tests
         {
             int executedCount = 0;
             AsyncCommand command = null!;
-            command = new AsyncCommand(ExecuteAsync);
+            command = new AsyncCommand(ExecuteAsync) { AllowConcurrentExecution = true };
 
             (command as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
 
@@ -84,18 +85,19 @@ namespace NuExt.Minimal.Mvvm.Tests
                     Assert.That(command.ExecutingCount, Is.EqualTo(0));
                     Assert.That(command.IsExecuting, Is.False);
                 });
-                for (int j = 0; j < 5; j++)
+                int num = 5;
+                for (int j = 0; j < num; j++)
                 {
                     _ = Task.Run(() => command.Execute(null));
                 }
-                while (Interlocked.CompareExchange(ref executedCount, 0, 0) != 5)
+                while (Interlocked.CompareExchange(ref executedCount, 0, 0) != num)
                 {
                     await Task.Delay(10).ConfigureAwait(false);
                 }
                 Assert.Multiple(() =>
                 {
-                    Assert.That(executedCount, Is.EqualTo(5));
-                    Assert.That(command.ExecutingCount, Is.EqualTo(5));
+                    Assert.That(executedCount, Is.EqualTo(num));
+                    Assert.That(command.ExecutingCount, Is.EqualTo(num));
                     Assert.That(command.IsExecuting, Is.True);
                 });
                 command.Cancel();
@@ -149,7 +151,7 @@ namespace NuExt.Minimal.Mvvm.Tests
         {
             int executedCount = 0;
             AsyncCommand command = null!;
-            command = new AsyncCommand(ExecuteAsync);
+            command = new AsyncCommand(ExecuteAsync) { AllowConcurrentExecution = true };
 
             (command as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
 
@@ -163,18 +165,19 @@ namespace NuExt.Minimal.Mvvm.Tests
                     Assert.That(command.ExecutingCount, Is.EqualTo(0));
                     Assert.That(command.IsExecuting, Is.False);
                 });
-                for (int j = 0; j < 5; j++)
+                int num = 5;
+                for (int j = 0; j < num; j++)
                 {
                     _ = Task.Run(async () => await command.ExecuteAsync(null));
                 }
-                while (Interlocked.CompareExchange(ref executedCount, 0, 0) != 5)
+                while (Interlocked.CompareExchange(ref executedCount, 0, 0) != num)
                 {
                     await Task.Delay(10).ConfigureAwait(false);
                 }
                 Assert.Multiple(() =>
                 {
-                    Assert.That(executedCount, Is.EqualTo(5));
-                    Assert.That(command.ExecutingCount, Is.EqualTo(5));
+                    Assert.That(executedCount, Is.EqualTo(num));
+                    Assert.That(command.ExecutingCount, Is.EqualTo(num));
                     Assert.That(command.IsExecuting, Is.True);
                 });
                 command.Cancel();

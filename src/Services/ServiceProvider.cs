@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Minimal.Mvvm
 {
@@ -42,6 +43,8 @@ namespace Minimal.Mvvm
         private readonly ConcurrentDictionary<Type, ServiceRegistration> _services = new();
 
         private readonly IServiceProvider? _parentProvider;
+
+        private readonly AsyncLocal<bool> _isRecursive = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceProvider"/> class.
@@ -118,12 +121,23 @@ namespace Minimal.Mvvm
 #else
            _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
 #endif
-            if (_services.TryGetValue(serviceType, out var serviceRegistration))
+            if (_isRecursive.Value)
             {
-                return serviceRegistration.Service.Value;
+                return null;
             }
-
-            return _parentProvider?.GetService(serviceType);
+            _isRecursive.Value = true;
+            try
+            {
+                if (_services.TryGetValue(serviceType, out var serviceRegistration))
+                {
+                    return serviceRegistration.Service.Value;
+                }
+                return _parentProvider?.GetService(serviceType);
+            }
+            finally
+            {
+                _isRecursive.Value = false;
+            }
         }
 
         /// <summary>
@@ -228,7 +242,7 @@ namespace Minimal.Mvvm
             }
             catch (InvalidCastException)
             {
-                RegisterService(typeof(T), () => callback(), throwIfExists);
+                RegisterService(typeof(T), new Func<object?>(() => callback()), throwIfExists);
             }
         }
 
