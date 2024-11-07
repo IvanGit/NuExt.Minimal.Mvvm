@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media.Animation;
 
-namespace Minimal.Mvvm.UI
+namespace Minimal.Mvvm.Windows
 {
     /// <summary>
     /// Represents a base class that can be used to attach behaviors to WPF elements.
@@ -96,6 +96,7 @@ namespace Minimal.Mvvm.UI
             {
                 return;
             }
+            Debug.Assert(AssociatedObject == null);
             ThrowInvalidOperationExceptionIfAttached();
             ThrowInvalidOperationExceptionIfTypeMismatch(obj?.GetType());
             AssociatedObject = obj;

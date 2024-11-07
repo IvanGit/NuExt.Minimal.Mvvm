@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace Minimal.Mvvm.UI
+namespace Minimal.Mvvm.Windows
 {
     /// <summary>
     /// Represents an abstract base class for event triggers that execute commands in response to events.

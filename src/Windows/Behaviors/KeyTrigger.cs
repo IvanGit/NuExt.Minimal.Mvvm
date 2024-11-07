@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace Minimal.Mvvm.UI
+namespace Minimal.Mvvm.Windows
 {
     /// <summary>
     /// Represents a trigger that executes a command in response to a specific key gesture.

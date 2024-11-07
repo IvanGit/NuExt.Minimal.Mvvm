@@ -25,7 +25,7 @@ namespace NuExt.Minimal.Mvvm.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(services, Is.Not.Null);
-                Assert.That(services.Count(), Is.EqualTo(2));
+                Assert.That(services.Count(), Is.EqualTo(4));
             });
 
             var service = vm.Services.GetService<MyServiceBase>();
@@ -42,6 +42,20 @@ namespace NuExt.Minimal.Mvvm.Tests
             });
 
             vm.Services.UnregisterService<MyServiceBase>();
+
+            service = vm.Services.GetService<MyServiceBase>();
+            Assert.Multiple(() =>
+            {
+                Assert.That(service, Is.Not.Null);
+                Assert.That(service!.Data, Is.EqualTo("Derived"));
+            });
+            service = vm.GetService<MyServiceBase>();
+            Assert.Multiple(() =>
+            {
+                Assert.That(service, Is.Not.Null);
+                Assert.That(service!.Data, Is.EqualTo("Derived"));
+            });
+            vm.Services.UnregisterService<MyDerivedService>();
 
             service = vm.Services.GetService<MyServiceBase>();
             Assert.Multiple(() =>

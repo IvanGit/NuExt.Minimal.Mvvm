@@ -18,9 +18,10 @@ Minimal.Mvvm.RelayCommand
 Minimal.Mvvm.RelayCommand&lt;T&gt;
 Minimal.Mvvm.ServiceProvider
 Minimal.Mvvm.ViewModelBase
-Minimal.Mvvm.UI.EventTrigger
-Minimal.Mvvm.UI.KeyTrigger</Description>
-    <Version>0.1.5</Version>
+Minimal.Mvvm.Windows.EventTrigger
+Minimal.Mvvm.Windows.KeyTrigger
+Minimal.Mvvm.Windows.WindowService</Description>
+    <Version>0.1.6</Version>
     <RootNamespace>Minimal.Mvvm</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>

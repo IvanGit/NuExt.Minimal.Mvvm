@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+
 #if NETFRAMEWORK || WINDOWS
+using System.Windows;
 using System.Windows.Threading;
 #endif
 
@@ -15,9 +17,6 @@ namespace Minimal.Mvvm
     /// </summary>
     public abstract class ViewModelBase : BindableBase, IServiceProvider
     {
-        private bool _isInitialized;
-        private object? _parameter;
-        private object? _parentViewModel;
         private readonly Lazy<IServiceContainer> _services;
 
         /// <summary>
@@ -35,8 +34,22 @@ namespace Minimal.Mvvm
         /// Gets the dispatcher associated with the UI thread.
         /// </summary>
         public Dispatcher Dispatcher { get; } = Dispatcher.CurrentDispatcher;
+
+        private static bool? s_isInDesignMode;
+        /// <summary>
+        /// Gets a value indicating whether the ViewModel is in design mode.
+        /// </summary>
+        public static bool IsInDesignMode
+        {
+            get
+            {
+                s_isInDesignMode ??= (bool)DesignerProperties.IsInDesignModeProperty.GetMetadata(typeof(DependencyObject)).DefaultValue;
+                return s_isInDesignMode.Value;
+            }
+        }
 #endif
 
+        private bool _isInitialized;
         /// <summary>
         /// Gets a value indicating whether the ViewModel has been initialized.
         /// </summary>
@@ -46,6 +59,7 @@ namespace Minimal.Mvvm
             private set => SetProperty(ref _isInitialized, value);
         }
 
+        private object? _parameter;
         /// <summary>
         /// Gets or sets a parameter associated with the ViewModel.
         /// </summary>
@@ -60,6 +74,7 @@ namespace Minimal.Mvvm
             }
         }
 
+        private object? _parentViewModel;
         /// <summary>
         /// Gets or sets the parent ViewModel.
         /// Throws an <see cref="InvalidOperationException"/> if set to itself.
@@ -118,7 +133,20 @@ namespace Minimal.Mvvm
         /// <returns>An instance of the requested service, or <c>null</c> if the service is not available.</returns>
         public T? GetService<T>()
         {
-            return (T?)((IServiceProvider)this).GetService(typeof(T));
+            return (T?)GetService(typeof(T), null);
+        }
+
+        /// <summary>
+        /// Gets the named service of the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type of service to retrieve.</typeparam>
+        /// <param name="name">
+        /// The name of the service to resolve. This can be used to distinguish between multiple services of the same type.
+        /// </param>
+        /// <returns>An instance of the requested service, or <c>null</c> if the service is not available.</returns>
+        public T? GetService<T>(string name)
+        {
+            return (T?)GetService(typeof(T), name);
         }
 
         /// <summary>
@@ -129,12 +157,30 @@ namespace Minimal.Mvvm
         /// If there is no service object of type <paramref name="serviceType"/>, returns <c>null</c>.</returns>
         object? IServiceProvider.GetService(Type serviceType)
         {
-            var service = Services.GetService(serviceType);
-            if (service is null && ParentViewModel is IServiceProvider serviceProvider)
+            return GetService(serviceType, null);
+        }
+
+        /// <summary>
+        /// Gets the named service object of the specified type.
+        /// </summary>
+        /// <param name="serviceType">An object that specifies the type of service object to get.</param>
+        /// <param name="name">
+        /// The name of the service to resolve. This can be used to distinguish between multiple services of the same type.
+        /// </param>
+        /// <returns>A service object of type <paramref name="serviceType"/>. 
+        /// If there is no service object of type <paramref name="serviceType"/>, returns <c>null</c>.</returns>
+        public object? GetService(Type serviceType, string? name)
+        {
+            var service = Services.GetService(serviceType, name);
+            if (service == null && ParentViewModel is ViewModelBase parentViewModel)
+            {
+                service = parentViewModel.GetService(serviceType, name);
+            }
+            else if (service == null && ParentViewModel is IServiceProvider serviceProvider)
             {
                 service = serviceProvider.GetService(serviceType);
             }
-            return service ?? ServiceProvider.Default.GetService(serviceType);
+            return service ?? ServiceProvider.Default.GetService(serviceType, name);
         }
 
         /// <summary>
@@ -170,7 +216,7 @@ namespace Minimal.Mvvm
         /// <returns>A task that represents the asynchronous initialization operation.</returns>
         protected virtual Task OnInitializeAsync(CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
         }
 
         /// <summary>
@@ -181,7 +227,7 @@ namespace Minimal.Mvvm
         /// <returns>A task that represents the asynchronous uninitialization operation.</returns>
         protected virtual Task OnUninitializeAsync(CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
         }
 
         /// <summary>

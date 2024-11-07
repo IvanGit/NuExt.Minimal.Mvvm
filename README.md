@@ -28,8 +28,9 @@
   - **`Minimal.Mvvm.ServiceProvider`**: A service provider class that allows for easy registration and resolution of services, facilitating dependency injection within your application.
 
 - **Interactivity Support**:
-  - **`Minimal.Mvvm.UI.EventTrigger`**: Executes a command in response to an event, with support for converting event arguments before passing them to the command or passing the event arguments directly.
-  - **`Minimal.Mvvm.UI.KeyTrigger`**: Executes a command in response to a specific key gesture, with default association to the UIElement's KeyUp event.
+  - **`Minimal.Mvvm.Windows.EventTrigger`**: Executes a command in response to an event, with support for converting event arguments before passing them to the command or passing the event arguments directly.
+  - **`Minimal.Mvvm.Windows.KeyTrigger`**: Executes a command in response to a specific key gesture, with default association to the UIElement's KeyUp event.
+  - **`Minimal.Mvvm.Windows.WindowService`**: Provides a service for interacting with a Window associated with a FrameworkElement.
 
 ### Installation
 
@@ -165,15 +166,28 @@ You can use `EventTrigger` and `KeyTrigger` in your XAML to bind events and key 
 ```csharp
 public class MyViewModel : ViewModelBase
 {
+    public ICommand CloseCommand { get; }
     public ICommand ContentRenderedCommand { get; }
     public ICommand LoadedCommand { get; }
     public ICommand OpenFileCommand { get; }
+    public WindowService? WindowService => GetService<WindowService>();
 
     public MyViewModel()
     {
+        CloseCommand = new RelayCommand(Close, CanClose);
         ContentRenderedCommand = new RelayCommand(OnContentRendered);
         LoadedCommand = new RelayCommand(OnLoaded);
         OpenFileCommand = new RelayCommand(OnOpenFile);
+    }
+
+    private bool CanClose()
+    {
+        return true;
+    }
+
+    private void Close()
+    {
+        WindowService?.Close();//Closes the window.
     }
 
     private void OnContentRendered()
@@ -199,15 +213,17 @@ public class MyViewModel : ViewModelBase
 <Window x:Class="YourNamespace.MyWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:minimal="clr-namespace:Minimal.Mvvm.UI;assembly=NuExt.Minimal.Mvvm"
+        xmlns:minimal="clr-namespace:Minimal.Mvvm.Windows;assembly=NuExt.Minimal.Mvvm"
         Title="My Window">
     <Window.DataContext>
         <local:MyViewModel />
     </Window.DataContext>
     <minimal:Interaction.Behaviors>
+        <minimal:WindowService/>
         <minimal:EventTrigger EventName="ContentRendered" Command="{Binding ContentRenderedCommand}"/>
         <minimal:EventTrigger EventName="Loaded" Command="{Binding LoadedCommand}" />
         <minimal:KeyTrigger Gesture="CTRL+O" Command="{Binding OpenFileCommand}" />
+        <minimal:KeyTrigger Gesture="CTRL+X" Command="{Binding CloseCommand}" />
     </minimal:Interaction.Behaviors>
     <Grid>
         <!-- Your UI elements here -->

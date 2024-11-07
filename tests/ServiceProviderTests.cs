@@ -1,4 +1,5 @@
 ﻿using Minimal.Mvvm;
+using System.Xml.Linq;
 
 namespace NuExt.Minimal.Mvvm.Tests
 {
@@ -10,7 +11,19 @@ namespace NuExt.Minimal.Mvvm.Tests
         {
             IServiceContainer provider = new ServiceProvider();
 
+            Assert.That(typeof(StubServiceBase).IsAssignableFrom(typeof(StubService)), Is.True);
+            Assert.That(typeof(StubService).IsAssignableFrom(typeof(StubServiceBase)), Is.False);
+            Assert.That(typeof(StubService).IsAssignableFrom(typeof(IStubService)), Is.False);
+            Assert.That(typeof(IStubService).IsAssignableFrom(typeof(StubService)), Is.True);
+
             provider.RegisterService(new StubService("A"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(provider.GetService<StubServiceBase>, Is.Not.Null);
+                Assert.That(provider.GetService<StubServiceBase>()!.Name, Is.EqualTo("A"));
+                Assert.That(provider.GetService<IStubService>, Is.Not.Null);
+                Assert.That(provider.GetService<IStubService>()!.Name, Is.EqualTo("A"));
+            });
             provider.RegisterService<IStubService>(new StubService("B"));
 
             Assert.Multiple(() =>
@@ -19,6 +32,8 @@ namespace NuExt.Minimal.Mvvm.Tests
                 Assert.That(provider.GetService<StubService>()!.Name, Is.EqualTo("A"));
                 Assert.That(provider.GetService<IStubService>, Is.Not.Null);
                 Assert.That(provider.GetService<IStubService>()!.Name, Is.EqualTo("B"));
+                Assert.That(provider.GetServices(typeof(StubServiceBase)), Is.Not.Null);
+                Assert.That(provider.GetServices(typeof(StubServiceBase)).Count(), Is.EqualTo(2));
                 Assert.That(provider.GetServices(typeof(StubService)), Is.Not.Null);
                 Assert.That(provider.GetServices(typeof(StubService)).Count(), Is.EqualTo(2));
                 Assert.That(provider.GetServices(typeof(IStubService)), Is.Not.Null);
@@ -57,6 +72,8 @@ namespace NuExt.Minimal.Mvvm.Tests
                     Assert.That(provider.GetService<AnotherStubService>()!.Name, Is.EqualTo("C"));
                     Assert.That(provider.GetService<IStubService>, Is.Not.Null);
                     Assert.That(provider.GetService<IStubService>()!.Name, Is.EqualTo("D"));
+                    Assert.That(provider.GetServices(typeof(StubServiceBase)), Is.Not.Null);
+                    Assert.That(provider.GetServices(typeof(StubServiceBase)).Count(), Is.EqualTo(3));
                     Assert.That(provider.GetServices(typeof(StubService)), Is.Not.Null);
                     Assert.That(provider.GetServices(typeof(StubService)).Count(), Is.EqualTo(1));
                     Assert.That(provider.GetServices(typeof(AnotherStubService)), Is.Not.Null);
@@ -68,10 +85,20 @@ namespace NuExt.Minimal.Mvvm.Tests
 
             void Cleanup()
             {
-                provider.UnregisterService<AnotherStubService>();
-                Assert.That(provider.GetService(typeof(AnotherStubService)), Is.Null);
-                provider.UnregisterService(typeof(IStubService));
-                Assert.That(provider.GetService<IStubService>(), Is.Null);
+                bool res = provider.UnregisterService<AnotherStubService>();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(res, Is.True);
+                    Assert.That(provider.GetService(typeof(AnotherStubService)), Is.Not.Null);
+                    Assert.That(((AnotherStubService?)provider.GetService(typeof(AnotherStubService)))!.Name, Is.EqualTo("D"));
+                });
+                res = provider.UnregisterService(typeof(IStubService));
+                Assert.Multiple(() =>
+                {
+                    Assert.That(res, Is.True);
+                    Assert.That(provider.GetService<IStubService>, Is.Not.Null);
+                    Assert.That(provider.GetService<IStubService>()!.Name, Is.EqualTo("A"));
+                });
             }
         }
 
@@ -81,29 +108,32 @@ namespace NuExt.Minimal.Mvvm.Tests
             string Name { get; }
         }
 
-        private class StubService: IStubService
+        private abstract class StubServiceBase
         {
-            public StubService(string name)
+            protected StubServiceBase(string name)
             {
                 Name = name;
             }
-
             public string Name { get; }
         }
 
-        private class AnotherStubService: IStubService
+        private class StubService: StubServiceBase, IStubService
+        {
+            public StubService(string name) : base(name)
+            {
+            }
+        }
+
+        private class AnotherStubService: StubServiceBase, IStubService
         {
             public AnotherStubService() : this("C")
             {
 
             }
 
-            public AnotherStubService(string name)
+            public AnotherStubService(string name):base(name)
             {
-                Name = name;
             }
-
-            public string Name { get; }
         }
     }
 }
