@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0;net8.0-windows;net6.0-windows;net462</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net9.0-windows;net8.0-windows;net6.0-windows;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <UseWPF Condition="'$(TargetFramework)' == 'net8.0-windows' or '$(TargetFramework)' == 'net6.0-windows' or '$(TargetFramework)' == 'net462'">true</UseWPF>
+    <UseWPF Condition="'$(TargetFramework)' == 'net9.0-windows' or '$(TargetFramework)' == 'net8.0-windows' or '$(TargetFramework)' == 'net6.0-windows' or '$(TargetFramework)' == 'net462'">true</UseWPF>
     <ImplicitUsings>disable</ImplicitUsings>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageTags>nuext;minimal;mvvm;wpf;ui;viewmodel;command;relaycommand;asynccommand;multiple;concurrent;async</PackageTags>
+    <PackageTags>nuext;minimal;mvvm;wpf;ui;di;viewmodel;command;relaycommand;asynccommand;multiple;concurrent;async;servicecontainer</PackageTags>
     <Description>NuExt.Minimal.Mvvm is an MVVM framework that offers a minimal set of components necessary to get started with the Model-View-ViewModel (MVVM) pattern.
 
 Commonly Used Types:
@@ -21,7 +21,7 @@ Minimal.Mvvm.ViewModelBase
 Minimal.Mvvm.Windows.EventTrigger
 Minimal.Mvvm.Windows.KeyTrigger
 Minimal.Mvvm.Windows.WindowService</Description>
-    <Version>0.1.6</Version>
+    <Version>0.2.0</Version>
     <RootNamespace>Minimal.Mvvm</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>

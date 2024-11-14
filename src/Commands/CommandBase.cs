@@ -149,7 +149,7 @@ namespace Minimal.Mvvm
         #endregion
     }
 
-    internal static class EventArgsCache
+    internal static partial class EventArgsCache
     {
         internal static readonly PropertyChangedEventArgs IsExecutingPropertyChanged = new(nameof(IRelayCommand.IsExecuting));
     }

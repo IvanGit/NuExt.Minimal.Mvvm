@@ -56,7 +56,12 @@ namespace Minimal.Mvvm
         public bool IsInitialized
         {
             get => _isInitialized;
-            private set => SetProperty(ref _isInitialized, value);
+            private set
+            {
+                if (_isInitialized == value) return;
+                _isInitialized = value;
+                OnPropertyChanged(EventArgsCache.IsInitializedPropertyChanged);
+            }
         }
 
         private object? _parameter;
@@ -69,8 +74,9 @@ namespace Minimal.Mvvm
             set
             {
                 if (_parameter == value) return;
+                if (!CanSetProperty(_parameter, value)) return;
                 _parameter = value;
-                OnPropertyChanged();
+                OnPropertyChanged(EventArgsCache.ParameterPropertyChanged);
             }
         }
 
@@ -86,8 +92,9 @@ namespace Minimal.Mvvm
             {
                 if (_parentViewModel == value) return;
                 if (value == this) throw new InvalidOperationException("ParentViewModel cannot be set to itself.");
+                if (!CanSetProperty(_parentViewModel, value)) return;
                 _parentViewModel = value;
-                OnPropertyChanged();
+                OnPropertyChanged(EventArgsCache.ParentViewModelPropertyChanged);
             }
         }
 
@@ -172,13 +179,14 @@ namespace Minimal.Mvvm
         public object? GetService(Type serviceType, string? name)
         {
             var service = Services.GetService(serviceType, name);
-            if (service == null && ParentViewModel is ViewModelBase parentViewModel)
+            switch (service)
             {
-                service = parentViewModel.GetService(serviceType, name);
-            }
-            else if (service == null && ParentViewModel is IServiceProvider serviceProvider)
-            {
-                service = serviceProvider.GetService(serviceType);
+                case null when ParentViewModel is ViewModelBase parentViewModel:
+                    service = parentViewModel.GetService(serviceType, name);
+                    break;
+                case null when ParentViewModel is IServiceProvider serviceProvider:
+                    service = serviceProvider.GetService(serviceType);
+                    break;
             }
             return service ?? ServiceProvider.Default.GetService(serviceType, name);
         }
@@ -256,5 +264,12 @@ namespace Minimal.Mvvm
         }
 
         #endregion
+    }
+
+    internal static partial class EventArgsCache
+    {
+        internal static readonly PropertyChangedEventArgs IsInitializedPropertyChanged = new(nameof(ViewModelBase.IsInitialized));
+        internal static readonly PropertyChangedEventArgs ParameterPropertyChanged = new(nameof(ViewModelBase.Parameter));
+        internal static readonly PropertyChangedEventArgs ParentViewModelPropertyChanged = new(nameof(ViewModelBase.ParentViewModel));
     }
 }

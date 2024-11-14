@@ -32,6 +32,10 @@
   - **`Minimal.Mvvm.Windows.KeyTrigger`**: Executes a command in response to a specific key gesture, with default association to the UIElement's KeyUp event.
   - **`Minimal.Mvvm.Windows.WindowService`**: Provides a service for interacting with a Window associated with a FrameworkElement.
 
+### Recommended Companion Package
+
+For an enhanced development experience, we highly recommend using the [`NuExt.Minimal.Mvvm.SourceGenerator`](https://www.nuget.org/packages/NuExt.Minimal.Mvvm.SourceGenerator) package alongside this framework. It provides a source generator that produces boilerplate code for your ViewModels at compile time, significantly reducing the amount of repetitive coding tasks and allowing you to focus more on the application-specific logic.
+
 ### Installation
 
 You can install `NuExt.Minimal.Mvvm` via [NuGet](https://www.nuget.org/):
@@ -48,7 +52,7 @@ Or through the Visual Studio package manager:
 
 ### Source Code Package
 
-In addition to the standard package, there is also a source code package available: `NuExt.Minimal.Mvvm.Sources`. This package allows you to embed the entire framework directly into your application, enabling easier source code exploring and debugging.
+In addition to the standard package, there is also a source code package available: [`NuExt.Minimal.Mvvm.Sources`](https://www.nuget.org/packages/NuExt.Minimal.Mvvm.Sources). This package allows you to embed the entire framework directly into your application, enabling easier source code exploring and debugging.
 
 To install the source code package, use the following command:
 
@@ -230,6 +234,44 @@ public class MyViewModel : ViewModelBase
     </Grid>
 </Window>
 ```
+
+#### Example Usage with Source Generator
+
+To further simplify your ViewModel development, consider using the source generator provided by the `NuExt.Minimal.Mvvm.SourceGenerator` package. Here's an example:
+
+```csharp
+using Minimal.Mvvm;
+
+public partial class MyModel : BindableBase
+{
+    [Notify]
+    private string? _description;
+
+    [Notify(Setter = AccessModifier.Private)]
+    private string _name;
+}
+```
+
+The source generator would produce the following code:
+
+```csharp
+partial class MyModel
+{
+    public string? Description
+    {
+        get => _description;
+        set => SetProperty(ref _description, value);
+    }
+
+    public string Name
+    {
+        get => _name;
+        private set => SetProperty(ref _name, value);
+    }
+}
+```
+
+This automation helps to maintain clean and efficient code, improving overall productivity. For details on installing and using the source generator, refer to the [NuExt.Minimal.Mvvm.SourceGenerator](https://github.com/IvanGit/NuExt.Minimal.Mvvm.SourceGenerator) documentation.
 
 ### Contributing
 
