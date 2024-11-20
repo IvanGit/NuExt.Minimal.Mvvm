@@ -7,7 +7,7 @@ namespace Minimal.Mvvm.Windows
     /// <summary>
     /// Converts a boolean value to a <see cref="Visibility"/> enumeration value and vice versa.
     /// </summary>
-    public sealed class BooleanToVisibilityConverter : ValueConverterBase<bool, Visibility, object>
+    public sealed class BooleanToVisibilityConverter : ValueConverterBase<bool, Visibility, object?>
     {
         /// <summary>
         /// Gets or sets a value indicating whether the converter should return 

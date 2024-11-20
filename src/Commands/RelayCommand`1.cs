@@ -11,7 +11,7 @@ namespace Minimal.Mvvm
     /// <typeparam name="T">The type of the parameter passed to the command.</typeparam>
     public class RelayCommand<T> : CommandBase<T>
     {
-        private readonly Action<T?> _execute;
+        private readonly Action<T> _execute;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RelayCommand{T}"/> class.
@@ -19,7 +19,7 @@ namespace Minimal.Mvvm
         /// <param name="execute">The execution logic.</param>
         /// <param name="canExecute">The execution status logic. If null, the command can always execute.</param>
         /// <exception cref="ArgumentNullException">Thrown if the execute argument is null.</exception>
-        public RelayCommand(Action<T?> execute, Func<T?, bool>? canExecute): base(canExecute)
+        public RelayCommand(Action<T> execute, Func<T, bool>? canExecute): base(canExecute)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         }
@@ -29,7 +29,7 @@ namespace Minimal.Mvvm
         /// </summary>
         /// <param name="execute">The execution logic.</param>
         /// <exception cref="ArgumentNullException">Thrown if the execute argument is null.</exception>
-        public RelayCommand(Action<T?> execute) : this(execute, null)
+        public RelayCommand(Action<T> execute) : this(execute, null)
         {
 
         }
@@ -41,7 +41,7 @@ namespace Minimal.Mvvm
         /// Supports multiple execution.
         /// </summary>
         /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
-        public override void Execute(T? parameter)
+        public override void Execute(T parameter)
         {
             if (!CanExecute(parameter))
             {

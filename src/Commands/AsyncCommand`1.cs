@@ -14,7 +14,7 @@ namespace Minimal.Mvvm
     /// <typeparam name="T">The type of the command parameter.</typeparam>
     public class AsyncCommand<T> : CommandBase<T>, IAsyncCommand<T>
     {
-        private readonly Func<T?, Task> _execute;
+        private readonly Func<T, Task> _execute;
         private readonly AsyncLocal<CancellationTokenSource?> _cancellationTokenSource = new();
         internal readonly ConcurrentDictionary<CancellationTokenSource, int> ExecutingTasks = new();
 
@@ -28,7 +28,7 @@ namespace Minimal.Mvvm
         /// <param name="execute">The asynchronous execution logic.</param>
         /// <param name="canExecute">The logic to determine if the command can execute.</param>
         /// <exception cref="ArgumentNullException">Thrown if the execute argument is null.</exception>
-        public AsyncCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute):base(canExecute)
+        public AsyncCommand(Func<T, Task> execute, Func<T, bool>? canExecute):base(canExecute)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         }
@@ -37,7 +37,7 @@ namespace Minimal.Mvvm
         /// Initializes a new instance of the <see cref="AsyncCommand{T}"/> class with no canExecute logic.
         /// </summary>
         /// <param name="execute">The asynchronous execution logic.</param>
-        public AsyncCommand(Func<T?, Task> execute) : this(execute, null)
+        public AsyncCommand(Func<T, Task> execute) : this(execute, null)
         {
 
         }
@@ -118,7 +118,7 @@ namespace Minimal.Mvvm
         /// Supports multiple execution.
         /// </summary>
         /// <param name="parameter">The parameter to be used by the command.</param>
-        public override async void Execute(T? parameter)
+        public override async void Execute(T parameter)
         {
             try
             {
@@ -142,7 +142,7 @@ namespace Minimal.Mvvm
         /// </summary>
         /// <param name="parameter">The parameter to be used by the command.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public Task ExecuteAsync(T? parameter)
+        public Task ExecuteAsync(T parameter)
         {
             return ExecuteAsync(parameter, default);
         }
@@ -155,7 +155,7 @@ namespace Minimal.Mvvm
         /// <param name="parameter">The parameter to be used by the command.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task ExecuteAsync(T? parameter, CancellationToken cancellationToken)
+        public async Task ExecuteAsync(T parameter, CancellationToken cancellationToken)
         {
             if (!CanExecute(parameter))
             {

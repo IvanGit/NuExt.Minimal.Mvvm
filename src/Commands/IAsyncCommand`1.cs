@@ -15,7 +15,7 @@ namespace Minimal.Mvvm
         /// </summary>
         /// <param name="parameter">The parameter to be used by the command.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task ExecuteAsync(T? parameter);
+        Task ExecuteAsync(T parameter);
 
         /// <summary>
         /// Executes the command asynchronously with cancellation support.
@@ -23,6 +23,6 @@ namespace Minimal.Mvvm
         /// <param name="parameter">The parameter to be used by the command.</param>
         /// <param name="cancellationToken">A cancellation token for managing the command execution.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task ExecuteAsync(T? parameter, CancellationToken cancellationToken);
+        Task ExecuteAsync(T parameter, CancellationToken cancellationToken);
     }
 }

@@ -32,12 +32,12 @@ namespace Minimal.Mvvm
         /// The converted value of type <typeparamref name="T"/>, or default value of type <typeparamref name="T"/> if the conversion fails and <paramref name="throwCastException"/> is false.
         /// </returns>
         /// <exception cref="InvalidCastException">Thrown when the conversion to <typeparamref name="T"/> fails and <paramref name="throwCastException"/> is true.</exception>
-        public static T? To(object? value, bool throwCastException = true)
+        public static T To(object? value, bool throwCastException = true)
         {
             switch (value)
             {
                 case null:
-                    return (s_isValueType && !throwCastException) ? default : (T?)value;
+                    return (s_isValueType && !throwCastException) ? default! : (T)value!;
                 case T @param:
                     return @param;
                 default:
@@ -47,21 +47,21 @@ namespace Minimal.Mvvm
                         {
                             return value switch
                             {
-                                string s => (T?)Enum.Parse(s_genericType, s, ignoreCase: false),
-                                _ => (T?)Enum.ToObject(s_genericType, value)
+                                string s => (T)Enum.Parse(s_genericType, s, ignoreCase: false),
+                                _ => (T)Enum.ToObject(s_genericType, value)
                             };
                         }
                         if (value is IConvertible)
                         {
-                            return (T?)Convert.ChangeType(value, s_genericType, CultureInfo.InvariantCulture);
+                            return (T)Convert.ChangeType(value, s_genericType, CultureInfo.InvariantCulture);
                         }
 
-                        if (!throwCastException) return default;
-                        return (T?)value;
+                        if (!throwCastException) return default!;
+                        return (T)value;
                     }
                     catch when (!throwCastException)
                     {
-                        return default;
+                        return default!;
                     }
             }
         }

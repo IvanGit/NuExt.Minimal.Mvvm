@@ -5,7 +5,7 @@ namespace NuExt.Minimal.Mvvm.Tests
 {
     class GenericCommandParameterTests
     {
-        protected static ICommand<T> CreateCommand<T>(Action<T?> execute, Func<T?, bool>? canExecute = null)
+        protected static ICommand<T> CreateCommand<T>(Action<T> execute, Func<T, bool>? canExecute = null)
         {
             return new RelayCommand<T>(execute, canExecute);
         }

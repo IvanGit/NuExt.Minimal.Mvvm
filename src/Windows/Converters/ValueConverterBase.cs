@@ -55,7 +55,7 @@ namespace Minimal.Mvvm.Windows
         /// <param name="parameter">The converter parameter to use.</param>
         /// <param name="culture">The culture to use in the converter.</param>
         /// <returns>A converted value.</returns>
-        protected abstract TTo? ConvertTo(TFrom? value, TParameter? parameter, CultureInfo? culture);
+        protected abstract TTo ConvertTo(TFrom value, TParameter parameter, CultureInfo? culture);
 
         /// <summary>
         /// Converts a value from the target type back to the source type.
@@ -66,7 +66,7 @@ namespace Minimal.Mvvm.Windows
         /// <param name="parameter">The converter parameter to use.</param>
         /// <param name="culture">The culture to use in the converter.</param>
         /// <returns>A converted value.</returns>
-        protected virtual TFrom? ConvertFrom(TTo? value, TParameter? parameter, CultureInfo? culture)
+        protected virtual TFrom ConvertFrom(TTo value, TParameter parameter, CultureInfo? culture)
         {
             throw new NotSupportedException();
         }

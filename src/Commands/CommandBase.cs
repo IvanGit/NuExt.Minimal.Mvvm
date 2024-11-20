@@ -12,14 +12,14 @@ namespace Minimal.Mvvm
     /// <typeparam name="T">The type of the command parameter.</typeparam>
     public abstract class CommandBase<T>: ICommand<T>, IRelayCommand, INotifyPropertyChanged
     {
-        private readonly Func<T?, bool>? _canExecute;
+        private readonly Func<T, bool>? _canExecute;
         protected internal volatile int ExecutingCount;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandBase{T}"/> class.
         /// </summary>
         /// <param name="canExecute">The function to determine if the command can execute.</param>
-        protected CommandBase(Func<T?, bool>? canExecute)
+        protected CommandBase(Func<T, bool>? canExecute)
         {
             _canExecute = canExecute;
         }
@@ -71,7 +71,7 @@ namespace Minimal.Mvvm
         /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
         /// <returns>true if this command can be executed; otherwise, false.</returns>
         [DebuggerStepThrough]
-        public bool CanExecute(T? parameter)
+        public bool CanExecute(T parameter)
         {
             if (!AllowConcurrentExecution && IsExecuting)
             {
@@ -85,7 +85,7 @@ namespace Minimal.Mvvm
         /// Supports multiple execution.
         /// </summary>
         /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
-        public abstract void Execute(T? parameter);
+        public abstract void Execute(T parameter);
 
         /// <summary>
         /// Converts the given parameter to the specified generic type <typeparamref name="T"/>.
@@ -98,7 +98,7 @@ namespace Minimal.Mvvm
         /// <returns>
         /// The converted parameter of type <typeparamref name="T"/>, or default value of type <typeparamref name="T"/> if the conversion fails and <paramref name="throwCastException"/> is false.
         /// </returns>
-        protected T? GetCommandParameter(object? parameter, bool throwCastException = true)
+        protected T GetCommandParameter(object? parameter, bool throwCastException = true)
         {
             return Cast<T>.To(parameter, throwCastException);
         }

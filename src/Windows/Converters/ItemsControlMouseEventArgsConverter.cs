@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace Minimal.Mvvm.Windows
 {
-    public class ItemsControlMouseEventArgsConverter : ValueConverterBase<MouseEventArgs, object, Control>
+    public class ItemsControlMouseEventArgsConverter : ValueConverterBase<MouseEventArgs, object?, Control>
     {
         public ItemsControlMouseEventArgsConverter()
         {
@@ -14,7 +14,6 @@ namespace Minimal.Mvvm.Windows
         }
         protected override object? ConvertTo(MouseEventArgs? args, Control? sender, CultureInfo? culture)
         {
-            Debug.Assert(sender is TreeViewItem);
             return sender?.DataContext;
         }
     }

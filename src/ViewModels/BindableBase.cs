@@ -111,7 +111,7 @@ namespace Minimal.Mvvm
         /// <returns>True if the value was changed; otherwise, false.</returns>
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
         {
-            return SetProperty(ref storage, value, (Action?)null, propertyName);
+            return SetProperty(ref storage, value, propertyName, out _);
         }
 
         /// <summary>
