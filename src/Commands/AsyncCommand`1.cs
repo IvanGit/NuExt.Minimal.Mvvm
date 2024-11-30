@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ namespace Minimal.Mvvm
     {
         private readonly Func<T, Task> _execute;
         private readonly AsyncLocal<CancellationTokenSource?> _cancellationTokenSource = new();
+        private readonly AsyncLocal<StrongBox<bool>?> _isExecutionFailedHandled = new();
         internal readonly ConcurrentDictionary<CancellationTokenSource, int> ExecutingTasks = new();
 
         private volatile int _state;
@@ -120,9 +122,11 @@ namespace Minimal.Mvvm
         /// <param name="parameter">The parameter to be used by the command.</param>
         public override async void Execute(T parameter)
         {
+            var isExecutionFailedHandled = _isExecutionFailedHandled.Value;
+            _isExecutionFailedHandled.Value = new StrongBox<bool>();
             try
             {
-                await ExecuteAsync(parameter);
+                await ExecuteAsync(parameter, default).ConfigureAwait(ContinueOnCapturedContext);
             }
             catch (OperationCanceledException)
             {
@@ -130,8 +134,16 @@ namespace Minimal.Mvvm
             }
             catch (Exception ex)
             {
-                Debug.Assert(false, ex.Message);
-                throw;
+                Debug.Assert(!_isExecutionFailedHandled.Value.Value, ex.Message);
+                //do not throw in async void
+                if (!_isExecutionFailedHandled.Value.Value)
+                {
+                    OnExecutionFailed(ex);
+                }
+            }
+            finally
+            {
+                _isExecutionFailedHandled.Value = isExecutionFailedHandled;
             }
         }
 
@@ -162,13 +174,13 @@ namespace Minimal.Mvvm
                 return;
             }
 
-            using var cts = cancellationToken.CanBeCanceled ? 
-                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken) : 
+            using var cts = cancellationToken.CanBeCanceled ?
+                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken) :
                 new CancellationTokenSource();
             if (IsCancellationRequested)
             {
 #if NET8_0_OR_GREATER
-                await cts.CancelAsync();
+                await cts.CancelAsync().ConfigureAwait(ContinueOnCapturedContext);
 #else
                 cts.Cancel();
 #endif
@@ -181,7 +193,7 @@ namespace Minimal.Mvvm
                 if (IsCancellationRequested)
                 {
 #if NET8_0_OR_GREATER
-                    await cts.CancelAsync();
+                    await cts.CancelAsync().ConfigureAwait(ContinueOnCapturedContext);
 #else
                     cts.Cancel();
 #endif
@@ -196,6 +208,11 @@ namespace Minimal.Mvvm
             }
             catch (Exception ex)
             {
+                var isExecutionFailedHandled = _isExecutionFailedHandled.Value;
+                if (isExecutionFailedHandled != null)
+                {
+                    isExecutionFailedHandled.Value = true;
+                }
                 OnExecutionFailed(ex);
                 throw;
             }
