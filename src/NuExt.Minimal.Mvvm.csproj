@@ -21,7 +21,7 @@ Minimal.Mvvm.ViewModelBase
 Minimal.Mvvm.Windows.EventTrigger
 Minimal.Mvvm.Windows.KeyTrigger
 Minimal.Mvvm.Windows.WindowService</Description>
-    <Version>0.2.4</Version>
+    <Version>0.3.0</Version>
     <RootNamespace>Minimal.Mvvm</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>

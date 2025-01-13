@@ -89,7 +89,7 @@ namespace Minimal.Mvvm.Windows
             {
                 case ContentControl contentControl:
                 {
-                    newItems = new List<Behavior>();
+                    newItems = [];
                     if (contentControl.Content is Behavior behavior)
                     {
                         newItems.Add(behavior);
@@ -98,7 +98,7 @@ namespace Minimal.Mvvm.Windows
                     break;
                 }
                 case ItemsControl itemsControl:
-                    newItems = new List<Behavior>();
+                    newItems = [];
                     foreach (object item in itemsControl.Items)
                     {
                         if (item is not Behavior behavior)
@@ -142,7 +142,7 @@ namespace Minimal.Mvvm.Windows
             var behaviors = (BehaviorCollection?)obj.GetValue(BehaviorsProperty);
             if (behaviors == null)
             {
-                behaviors = new BehaviorCollection();
+                behaviors = [];
                 obj.SetValue(BehaviorsProperty, behaviors);
             }
             return behaviors;
