@@ -6,12 +6,12 @@ namespace Minimal.Mvvm.Windows
     /// <summary>
     /// Represents a base class for services that can be attached to a FrameworkElement and need access to the Window.
     /// </summary>
-    public abstract class WindowServiceBase: ServiceBase<FrameworkElement>
+    public abstract class WindowServiceBase : ServiceBase<FrameworkElement>
     {
         #region Dependency Properties
 
         private static readonly DependencyPropertyKey WindowPropertyKey = DependencyProperty.RegisterReadOnly(
-            nameof(Window), typeof(Window), typeof(WindowServiceBase), 
+            nameof(Window), typeof(Window), typeof(WindowServiceBase),
             new PropertyMetadata(null, (d, e) => ((WindowServiceBase)d).OnWindowChanged((Window?)e.OldValue)));
         public static readonly DependencyProperty WindowProperty = WindowPropertyKey.DependencyProperty;
 

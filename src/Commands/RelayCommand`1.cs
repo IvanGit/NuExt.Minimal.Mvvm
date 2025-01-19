@@ -19,7 +19,7 @@ namespace Minimal.Mvvm
         /// <param name="execute">The execution logic.</param>
         /// <param name="canExecute">The execution status logic. If null, the command can always execute.</param>
         /// <exception cref="ArgumentNullException">Thrown if the execute argument is null.</exception>
-        public RelayCommand(Action<T> execute, Func<T, bool>? canExecute): base(canExecute)
+        public RelayCommand(Action<T> execute, Func<T, bool>? canExecute) : base(canExecute)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         }

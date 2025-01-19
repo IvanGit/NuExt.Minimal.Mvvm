@@ -97,9 +97,9 @@ namespace Minimal.Mvvm.Windows
         {
             if (Command == null && BindingOperations.GetBindingExpression(this, CommandProperty) != null)
             {
-                Dispatcher.BeginInvoke(new Action(() => {
+                Dispatcher.InvokeAsync(() => {
                     ExecuteCommand(sender, eventArgs);
-                }));
+                });
                 return;
             }
             ExecuteCommand(sender, eventArgs);

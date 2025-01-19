@@ -10,7 +10,7 @@ namespace Minimal.Mvvm
     /// Provides a simple implementation of a service container which supports 
     /// registering and retrieving services with optional parent provider support.
     /// </summary>
-    public class ServiceProvider: IServiceContainer
+    public class ServiceProvider : IServiceContainer
     {
         private readonly record struct ServiceKey(Type Type, string? Name)
         {
@@ -260,7 +260,7 @@ namespace Minimal.Mvvm
         /// <typeparam name="T">The type of the service.</typeparam>
         /// <param name="service">The service instance to register.</param>
         /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        public void RegisterService<T>(T service, bool throwIfExists = false) where T:  class
+        public void RegisterService<T>(T service, bool throwIfExists = false) where T : class
         {
             RegisterService(typeof(T), service, (string?)null, throwIfExists);
         }

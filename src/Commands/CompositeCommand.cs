@@ -7,7 +7,7 @@ namespace Minimal.Mvvm
     /// <summary>
     /// Represents a command that aggregates multiple commands and executes them sequentially.
     /// </summary>
-    public class CompositeCommand: ICommand, IDisposable
+    public class CompositeCommand : ICommand, IDisposable
     {
         private readonly IEnumerable<ICommand> _commands;
 

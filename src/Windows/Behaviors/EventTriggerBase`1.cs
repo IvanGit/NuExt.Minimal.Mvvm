@@ -2,7 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Tracing;
 using System.Reflection;
 using System.Windows;
 
@@ -143,9 +142,7 @@ namespace Minimal.Mvvm.Windows
             return parameters.Length == 2;
         }
 
-        /// <summary>
-        /// Called when the behavior is attached to an element.
-        /// </summary>
+        /// <inheritdoc />
         protected override void OnAttached()
         {
             base.OnAttached();
@@ -155,9 +152,7 @@ namespace Minimal.Mvvm.Windows
             RegisterEvent(AssociatedObject, EventName);
         }
 
-        /// <summary>
-        /// Called when the behavior is detached from an element.
-        /// </summary>
+        /// <inheritdoc />
         protected override void OnDetaching()
         {
             UnregisterEvent(AssociatedObject, Event);

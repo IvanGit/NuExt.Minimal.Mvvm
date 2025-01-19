@@ -1,5 +1,4 @@
 ﻿using Minimal.Mvvm;
-using System.Xml.Linq;
 
 namespace NuExt.Minimal.Mvvm.Tests
 {

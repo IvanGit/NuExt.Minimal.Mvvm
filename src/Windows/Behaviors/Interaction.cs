@@ -67,6 +67,7 @@ namespace Minimal.Mvvm.Windows
             {
                 foreach (Behavior behavior in oldItems)
                 {
+                    behavior.Detach();//to avoid "System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element." while removing.
                     behaviors.Remove(behavior);
                 }
             }

@@ -30,7 +30,7 @@ namespace Minimal.Mvvm
         /// <param name="execute">The asynchronous execution logic.</param>
         /// <param name="canExecute">The logic to determine if the command can execute.</param>
         /// <exception cref="ArgumentNullException">Thrown if the execute argument is null.</exception>
-        public AsyncCommand(Func<T, Task> execute, Func<T, bool>? canExecute):base(canExecute)
+        public AsyncCommand(Func<T, Task> execute, Func<T, bool>? canExecute) : base(canExecute)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         }

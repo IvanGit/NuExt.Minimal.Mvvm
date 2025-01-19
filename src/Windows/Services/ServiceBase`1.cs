@@ -34,8 +34,8 @@ namespace Minimal.Mvvm.Windows
         /// <summary>
         /// The name of the service.
         /// </summary>
-        public string Name 
-        { 
+        public string Name
+        {
             get => (string)GetValue(NameProperty);
             set => SetValue(NameProperty, value);
         }
@@ -93,16 +93,6 @@ namespace Minimal.Mvvm.Windows
                 Path = new PropertyPath(FrameworkElement.DataContextProperty),
                 Mode = BindingMode.OneWay
             });
-        }
-
-        /// <summary>
-        /// Called when the behavior is being detached from its AssociatedObject.
-        /// Clears the binding to the DataContext property.
-        /// </summary>
-        protected override void OnDetaching()
-        {
-            BindingOperations.ClearBinding(this, DataContextProperty);
-            base.OnDetaching();
         }
 
         #endregion

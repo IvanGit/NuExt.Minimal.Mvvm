@@ -8,7 +8,7 @@ namespace Minimal.Mvvm
     /// the functionalities of <see cref="ICommand{T}"/> and <see cref="IAsyncCommand"/>.
     /// </summary>
     /// <typeparam name="T">The type of the command parameter.</typeparam>
-    public interface IAsyncCommand<in T>: ICommand<T>, IAsyncCommand
+    public interface IAsyncCommand<in T> : ICommand<T>, IAsyncCommand
     {
         /// <summary>
         /// Executes the command asynchronously.

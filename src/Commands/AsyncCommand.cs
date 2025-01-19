@@ -7,7 +7,7 @@ namespace Minimal.Mvvm
     /// Represents an asynchronous command that does not take any parameters.
     /// Supports multiple execution.
     /// </summary>
-    public class AsyncCommand: AsyncCommand<object?>
+    public class AsyncCommand : AsyncCommand<object?>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="AsyncCommand"/> class with the specified execution logic.

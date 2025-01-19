@@ -6,7 +6,7 @@ namespace Minimal.Mvvm
     /// <summary>
     /// Defines a container for registering and resolving service instances.
     /// </summary>
-    public interface IServiceContainer: IServiceProvider
+    public interface IServiceContainer : IServiceProvider
     {
         /// <summary>
         /// Gets a service object of type <typeparamref name="T"/>.

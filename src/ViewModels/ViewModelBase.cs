@@ -24,7 +24,7 @@ namespace Minimal.Mvvm
         /// </summary>
         protected ViewModelBase()
         {
-           _services = new Lazy<IServiceContainer>(() => new ServiceProvider(this));
+            _services = new Lazy<IServiceContainer>(() => new ServiceProvider(this));
         }
 
         #region Properties

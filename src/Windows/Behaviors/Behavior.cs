@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Media.Animation;
 
 namespace Minimal.Mvvm.Windows
@@ -11,7 +12,7 @@ namespace Minimal.Mvvm.Windows
     /// <summary>
     /// Represents a base class that can be used to attach behaviors to WPF elements.
     /// </summary>
-    public abstract class Behavior: Animatable, INotifyPropertyChanged
+    public abstract class Behavior : Animatable, INotifyPropertyChanged
     {
         private readonly Type _associatedType;
         private DependencyObject? _associatedObject;
@@ -112,9 +113,9 @@ namespace Minimal.Mvvm.Windows
         /// Creates a new instance of the <see cref="Behavior"/> class.
         /// </summary>
         /// <returns>A new instance of the <see cref="Behavior"/> class.</returns>
-        protected override Freezable? CreateInstanceCore()
+        protected override Freezable CreateInstanceCore()
         {
-            return (Freezable?)Activator.CreateInstance(GetType());
+            return (Freezable)Activator.CreateInstance(GetType())!;
         }
 
         /// <summary>
@@ -128,6 +129,7 @@ namespace Minimal.Mvvm.Windows
                 return;
             }
             OnDetaching();
+            BindingOperations.ClearAllBindings(this);//clear bindings to avoid System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element.
             AssociatedObject = null;
         }
 

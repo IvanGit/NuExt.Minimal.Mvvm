@@ -7,7 +7,7 @@ namespace Minimal.Mvvm
     /// This is a non-generic version of <see cref="RelayCommand{T}"/> for commands that do not require parameters.
     /// Supports multiple execution.
     /// </summary>
-    public class RelayCommand: RelayCommand<object?>
+    public class RelayCommand : RelayCommand<object?>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RelayCommand"/> class that can always execute.

@@ -8,7 +8,7 @@ namespace Minimal.Mvvm
     /// <summary>
     /// Interface for an asynchronous command, extending the functionality of IRelayCommand.
     /// </summary>
-    public interface IAsyncCommand: IRelayCommand
+    public interface IAsyncCommand : IRelayCommand
     {
         /// <summary>
         /// Gets the current cancellation token source.
