@@ -58,15 +58,79 @@ namespace Minimal.Mvvm
         /// <summary>
         /// Raises the <see cref="PropertyChanged"/> event for multiple properties.
         /// </summary>
-        /// <param name="propertyNames">An array of property names.</param>
+        /// <param name="args">An enumerable collection of <see cref="PropertyChangedEventArgs"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="args"/> is <c>null</c>.</exception>
+        public void RaisePropertiesChanged(params IEnumerable<PropertyChangedEventArgs> args)
+        {
+            _ = args ?? throw new ArgumentNullException(nameof(args));
+            foreach (var e in args)
+            {
+                RaisePropertyChanged(e);
+            }
+        }
+
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event for multiple properties.
+        /// </summary>
+        /// <param name="propertyNames">An enumerable collection of property names.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyNames"/> is <c>null</c>.</exception>
-        public void RaisePropertiesChanged(params string[] propertyNames)
+        public void RaisePropertiesChanged(params IEnumerable<string> propertyNames)
         {
             _ = propertyNames ?? throw new ArgumentNullException(nameof(propertyNames));
-            foreach (string propertyName in propertyNames)
+            foreach (var propertyName in propertyNames)
             {
-                RaisePropertyChanged(propertyName);
+                OnPropertyChanged(propertyName);
             }
+        }
+
+#if NET || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event for multiple properties.
+        /// </summary>
+        /// <param name="args">A read-only span of <see cref="PropertyChangedEventArgs"/> containing event data for the properties that changed.</param>
+        public void RaisePropertiesChanged(params ReadOnlySpan<PropertyChangedEventArgs> args)
+        {
+            foreach (var e in args)
+            {
+                OnPropertyChanged(e);
+            }
+        }
+
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event for multiple properties.
+        /// </summary>
+        /// <param name="propertyNames">A read-only span of property names.</param>
+        public void RaisePropertiesChanged(params ReadOnlySpan<string> propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                OnPropertyChanged(propertyName);
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event for three specified properties.
+        /// </summary>
+        /// <param name="e1">The event data containing the name of the first property that changed.</param>
+        /// <param name="e2">The event data containing the name of the second property that changed.</param>
+        /// <param name="e3">The event data containing the name of the third property that changed.</param>
+        public void RaisePropertiesChanged(PropertyChangedEventArgs e1, PropertyChangedEventArgs e2, PropertyChangedEventArgs e3)
+        {
+            OnPropertyChanged(e1);
+            OnPropertyChanged(e2);
+            OnPropertyChanged(e3);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event for two specified properties.
+        /// </summary>
+        /// <param name="e1">The event data containing the name of the first property that changed.</param>
+        /// <param name="e2">The event data containing the name of the second property that changed.</param>
+        public void RaisePropertiesChanged(PropertyChangedEventArgs e1, PropertyChangedEventArgs e2)
+        {
+            OnPropertyChanged(e1);
+            OnPropertyChanged(e2);
         }
 
         /// <summary>
@@ -91,6 +155,15 @@ namespace Minimal.Mvvm
         {
             OnPropertyChanged(propertyName1);
             OnPropertyChanged(propertyName2);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event for the specified property.
+        /// </summary>
+        /// <param name="e">The event data containing the name of the property that changed.</param>
+        public void RaisePropertyChanged(PropertyChangedEventArgs e)
+        {
+            OnPropertyChanged(e);
         }
 
         /// <summary>

@@ -91,7 +91,7 @@ namespace Minimal.Mvvm
             set
             {
                 if (_parentViewModel == value) return;
-                if (value == this) throw new InvalidOperationException("ParentViewModel cannot be set to itself.");
+                if (value == this) ThrowInvalidParentViewModelAssignment();
                 if (!CanSetProperty(_parentViewModel, value)) return;
                 _parentViewModel = value;
                 OnPropertyChanged(EventArgsCache.ParentViewModelPropertyChanged);
@@ -238,6 +238,18 @@ namespace Minimal.Mvvm
             return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidParentViewModelAssignment()
+        {
+            throw new InvalidOperationException("ParentViewModel cannot be set to itself.");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidThreadAccess()
+        {
+            throw new InvalidOperationException("The calling thread cannot access this object because it is owned by a different thread.");
+        }
+
         /// <summary>
         /// Asynchronously uninitializes the ViewModel.
         /// This method performs various checks and throws exceptions if certain conditions are met,
@@ -261,6 +273,20 @@ namespace Minimal.Mvvm
                 throw;
             }
             IsInitialized = false;
+        }
+
+        /// <summary>
+        /// Checks if the current thread is the same as the thread on which this instance was created and throws an <see cref="InvalidOperationException"/> if not.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the current thread is not the same as the thread on which this instance was created.</exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void VerifyAccess()
+        {
+            if (!CheckAccess())
+            {
+                ThrowInvalidThreadAccess();
+            }
         }
 
         #endregion

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0;net9.0-windows;net8.0-windows;net6.0-windows;net462</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net9.0;net9.0-windows;net8.0;net8.0-windows;net6.0;net6.0-windows;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
     <UseWPF Condition="'$(TargetFramework)' == 'net9.0-windows' or '$(TargetFramework)' == 'net8.0-windows' or '$(TargetFramework)' == 'net6.0-windows' or '$(TargetFramework)' == 'net462'">true</UseWPF>
     <ImplicitUsings>disable</ImplicitUsings>
@@ -21,7 +21,7 @@ Minimal.Mvvm.ViewModelBase
 Minimal.Mvvm.Windows.EventTrigger
 Minimal.Mvvm.Windows.KeyTrigger
 Minimal.Mvvm.Windows.WindowService</Description>
-    <Version>0.3.1</Version>
+    <Version>0.3.2</Version>
     <RootNamespace>Minimal.Mvvm</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
