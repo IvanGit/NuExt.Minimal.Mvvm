@@ -55,7 +55,7 @@ namespace Minimal.Mvvm.Windows
                 WritePreamble();
                 _associatedObject = value;
                 WritePostscript();
-                OnPropertyChanged();
+                OnPropertyChanged(EventArgsCache.AssociatedObjectPropertyChanged);
             }
         }
 
@@ -184,6 +184,15 @@ namespace Minimal.Mvvm.Windows
         public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event (per <see cref="INotifyPropertyChanged" />).
+        /// </summary>
+        /// <param name="e">The event data containing the name of the property that changed.</param>
+        protected void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            PropertyChanged?.Invoke(this, e);
+        }
+
+        /// <summary>
         /// Raises the PropertyChanged event.
         /// </summary>
         /// <param name="propertyName">
@@ -196,6 +205,11 @@ namespace Minimal.Mvvm.Windows
         }
 
         #endregion
+    }
+
+    internal static class EventArgsCache
+    {
+        internal static readonly PropertyChangedEventArgs AssociatedObjectPropertyChanged = new(nameof(Behavior.AssociatedObject));
     }
 }
 #endif
