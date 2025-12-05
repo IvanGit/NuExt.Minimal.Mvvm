@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="Sources" />
+  </Configurations>
+  <Project Path="src/NuExt.Minimal.Mvvm.csproj" />
+  <Project Path="tests/NuExt.Minimal.Mvvm.Tests.csproj">
+    <BuildType Solution="Sources|*" Project="Release" />
+    <Build Solution="Sources|*" Project="false" />
+  </Project>
+</Solution>
