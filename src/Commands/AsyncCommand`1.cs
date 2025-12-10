@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Minimal.Mvvm
 {
@@ -59,7 +60,15 @@ namespace Minimal.Mvvm
         /// <summary>
         /// Gets a value indicating whether the current execution context should be captured 
         /// and used to continue asynchronous operations in the ExecuteAsync method.
+        /// The default value is <c>true</c>.
         /// </summary>
+        /// <remarks>
+        /// When set to <c>true</c>, the synchronization context or task scheduler that was current at the time the await operation began will be used to resume execution after the await. 
+        /// This is useful for maintaining the context, such as UI thread, during asynchronous operations.
+        /// 
+        /// If set to <c>false</c>, the continuation may run on a different thread, which can improve performance in some scenarios but requires additional care to avoid threading issues. 
+        /// Specifically, if you are working with UI elements, setting this to <c>false</c> may lead to the "The calling thread cannot access this object because a different thread owns it." error when raising the <see cref="ICommand.CanExecuteChanged"/> event after the command execution.
+        /// </remarks>
         public bool ContinueOnCapturedContext
         {
             get;
@@ -68,7 +77,7 @@ namespace Minimal.Mvvm
 #else
             set;
 #endif
-        }
+        } = true;
 
         /// <summary>Gets whether cancellation has been requested for this <see cref="AsyncCommand{T}" />.</summary>
         public bool IsCancellationRequested => _state != NotCanceledState;
@@ -135,6 +144,7 @@ namespace Minimal.Mvvm
             catch (Exception ex)
             {
                 Debug.Assert(!_isExecutionFailedHandled.Value.Value, ex.Message);
+                Trace.WriteLine($"An error has occurred in {GetType().Name}:{Environment.NewLine}{ex.Message}");
                 //do not throw in async void
                 if (!_isExecutionFailedHandled.Value.Value)
                 {

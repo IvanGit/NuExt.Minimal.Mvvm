@@ -9,14 +9,14 @@ namespace Minimal.Mvvm
     /// </summary>
     public class CompositeCommand : ICommand, IDisposable
     {
-        private readonly IEnumerable<ICommand> _commands;
+        private readonly IReadOnlyList<ICommand> _commands;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CompositeCommand"/> class with the specified commands.
         /// </summary>
-        /// <param name="commands">The collection of commands to be aggregated.</param>
+        /// <param name="commands">A read-only list of commands to be aggregated.</param>
         /// <exception cref="ArgumentNullException">Thrown when the commands parameter is null.</exception>
-        public CompositeCommand(IEnumerable<ICommand> commands)
+        public CompositeCommand(params IReadOnlyList<ICommand> commands)
         {
             _commands = commands ?? throw new ArgumentNullException(nameof(commands));
             SubscribeToCommands();
@@ -25,12 +25,34 @@ namespace Minimal.Mvvm
         /// <summary>
         /// Initializes a new instance of the <see cref="CompositeCommand"/> class with the specified commands.
         /// </summary>
+        /// <param name="commands">The collection of commands to be aggregated.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the commands parameter is null.</exception>
+        public CompositeCommand(params IEnumerable<ICommand> commands)
+        {
+            _ = commands ?? throw new ArgumentNullException(nameof(commands));
+            _commands = [.. commands];
+            SubscribeToCommands();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CompositeCommand"/> class with the specified commands.
+        /// </summary>
         /// <param name="commands">The array of commands to be aggregated.</param>
         /// <exception cref="ArgumentNullException">Thrown when the commands parameter is null.</exception>
-        public CompositeCommand(params ICommand[] commands) : this((IEnumerable<ICommand>)commands)
+        public CompositeCommand(params ICommand[] commands) : this((IReadOnlyList<ICommand>)commands)
         {
 
         }
+
+#if NET || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CompositeCommand"/> class with the specified commands.
+        /// </summary>
+        /// <param name="commands">A read-only span of commands to be aggregated.</param>
+        public CompositeCommand(params ReadOnlySpan<ICommand> commands) : this((IReadOnlyList<ICommand>)commands.ToArray())
+        {
+        }
+#endif
 
         #region Events
 

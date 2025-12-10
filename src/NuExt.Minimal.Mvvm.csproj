@@ -5,8 +5,8 @@
     <Nullable>enable</Nullable>
     <UseWPF Condition="'$(TargetFramework)' == 'net10.0-windows' or '$(TargetFramework)' == 'net9.0-windows' or '$(TargetFramework)' == 'net8.0-windows' or '$(TargetFramework)' == 'net462'">true</UseWPF>
     <ImplicitUsings>disable</ImplicitUsings>
-	<TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release' or '$(Configuration)' == 'Sources'">true</GeneratePackageOnBuild>
     <PackageTags>nuext;minimal;mvvm;wpf;ui;di;viewmodel;command;relaycommand;asynccommand;multiple;concurrent;async;servicecontainer</PackageTags>
     <Description>NuExt.Minimal.Mvvm is an MVVM framework that offers a minimal set of components necessary to get started with the Model-View-ViewModel (MVVM) pattern.
 
@@ -22,7 +22,7 @@ Minimal.Mvvm.ViewModelBase
 Minimal.Mvvm.Windows.EventTrigger
 Minimal.Mvvm.Windows.KeyTrigger
 Minimal.Mvvm.Windows.WindowService</Description>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <RootNamespace>Minimal.Mvvm</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;NETSDK1233</NoWarn>

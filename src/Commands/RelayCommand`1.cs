@@ -9,7 +9,7 @@ namespace Minimal.Mvvm
     /// Supports multiple execution.
     /// </summary>
     /// <typeparam name="T">The type of the parameter passed to the command.</typeparam>
-    public class RelayCommand<T> : CommandBase<T>
+    public class RelayCommand<T> : CommandBase<T>, IRelayCommand
     {
         private readonly Action<T> _execute;
 
@@ -31,7 +31,6 @@ namespace Minimal.Mvvm
         /// <exception cref="ArgumentNullException">Thrown if the execute argument is null.</exception>
         public RelayCommand(Action<T> execute) : this(execute, null)
         {
-
         }
 
         #region Methods

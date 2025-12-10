@@ -10,7 +10,7 @@ namespace Minimal.Mvvm
     /// Provides a base implementation for commands.
     /// </summary>
     /// <typeparam name="T">The type of the command parameter.</typeparam>
-    public abstract class CommandBase<T> : ICommand<T>, IRelayCommand, INotifyPropertyChanged
+    public abstract class CommandBase<T> : ICommand<T>, INotifyPropertyChanged
     {
         private readonly Func<T, bool>? _canExecute;
         protected internal volatile int ExecutingCount;

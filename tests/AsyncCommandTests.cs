@@ -33,11 +33,11 @@ namespace NuExt.Minimal.Mvvm.Tests
                     await Task.Delay(10).ConfigureAwait(false);
                 }
                 await command.WaitAsync();
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(command.IsExecuting, Is.False);
                     Assert.That(executedCount, Is.EqualTo(num));
-                });
+                }
             }
 
             Assert.Pass();
@@ -78,13 +78,13 @@ namespace NuExt.Minimal.Mvvm.Tests
             for (int i = 0; i < 100; i++)
             {
                 await Progress.WriteLineAsync($"[{command.GetType().Name}, {i}] Thread={Environment.CurrentManagedThreadId,-2}, ExecutingCount={command.ExecutingCount}, IsExecuting={command.IsExecuting}");
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(command.IsCancellationRequested, Is.False);
                     Assert.That(executedCount, Is.Zero);
-                    Assert.That(command.ExecutingCount, Is.EqualTo(0));
+                    Assert.That(command.ExecutingCount, Is.Zero);
                     Assert.That(command.IsExecuting, Is.False);
-                });
+                }
                 int num = 5;
                 for (int j = 0; j < num; j++)
                 {
@@ -94,23 +94,23 @@ namespace NuExt.Minimal.Mvvm.Tests
                 {
                     await Task.Delay(10).ConfigureAwait(false);
                 }
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(executedCount, Is.EqualTo(num));
                     Assert.That(command.ExecutingCount, Is.EqualTo(num));
                     Assert.That(command.IsExecuting, Is.True);
-                });
+                }
                 command.Cancel();
                 Assert.That(command.IsCancellationRequested, Is.True);
                 await command.WaitAsync();
                 command.ResetCancel();
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(command.IsCancellationRequested, Is.False);
                     Assert.That(executedCount, Is.Zero);
-                    Assert.That(command.ExecutingCount, Is.EqualTo(0));
+                    Assert.That(command.ExecutingCount, Is.Zero);
                     Assert.That(command.IsExecuting, Is.False);
-                });
+                }
             }
 
             Assert.Pass();
@@ -158,13 +158,13 @@ namespace NuExt.Minimal.Mvvm.Tests
             for (int i = 0; i < 100; i++)
             {
                 await Progress.WriteLineAsync($"[{command.GetType().Name}, {i}] Thread={Environment.CurrentManagedThreadId,-2}, ExecutingCount={command.ExecutingCount}, IsExecuting={command.IsExecuting}");
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(command.IsCancellationRequested, Is.False);
                     Assert.That(executedCount, Is.Zero);
-                    Assert.That(command.ExecutingCount, Is.EqualTo(0));
+                    Assert.That(command.ExecutingCount, Is.Zero);
                     Assert.That(command.IsExecuting, Is.False);
-                });
+                }
                 int num = 5;
                 for (int j = 0; j < num; j++)
                 {
@@ -174,23 +174,23 @@ namespace NuExt.Minimal.Mvvm.Tests
                 {
                     await Task.Delay(10).ConfigureAwait(false);
                 }
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(executedCount, Is.EqualTo(num));
                     Assert.That(command.ExecutingCount, Is.EqualTo(num));
                     Assert.That(command.IsExecuting, Is.True);
-                });
+                }
                 command.Cancel();
                 Assert.That(command.IsCancellationRequested, Is.True);
                 await command.WaitAsync();
                 command.ResetCancel();
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(command.IsCancellationRequested, Is.False);
                     Assert.That(executedCount, Is.Zero);
-                    Assert.That(command.ExecutingCount, Is.EqualTo(0));
+                    Assert.That(command.ExecutingCount, Is.Zero);
                     Assert.That(command.IsExecuting, Is.False);
-                });
+                }
             }
 
             Assert.Pass();
@@ -224,6 +224,16 @@ namespace NuExt.Minimal.Mvvm.Tests
                     Progress.WriteLine($"[{command.GetType().Name}] Thread={Environment.CurrentManagedThreadId,-2}, ExecutingCount={command.ExecutingCount}, IsExecuting={command.IsExecuting}, IsCancellationRequested={command.IsCancellationRequested}");
                 }
             }
+        }
+
+        [Test]
+        public async Task AnonymousMethodsTestAsync()
+        {
+            AsyncCommand command = null!;
+            command = new AsyncCommand(async () => { await Task.Delay(0); });
+            await command.ExecuteAsync(null);
+
+            Assert.That(command.IsExecuting, Is.False);
         }
     }
 }

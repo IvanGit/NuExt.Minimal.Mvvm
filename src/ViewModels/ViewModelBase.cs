@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -193,26 +192,21 @@ namespace Minimal.Mvvm
 
         /// <summary>
         /// Asynchronously initializes the ViewModel.
-        /// This method performs various checks and throws exceptions if certain conditions are met,
-        /// such as if the parent ViewModel is null or if the ViewModel is already initialized.
         /// </summary>
-        /// <param name="cancellationToken">Optional cancellation token to cancel the initialization process.</param>
+        /// <param name="cancellationToken">An optional cancellation token to cancel the initialization process.</param>
         /// <returns>A task that represents the asynchronous initialization operation.</returns>
+        /// <remarks>
+        /// This method checks if the ViewModel is already initialized. If it is not,
+        /// it calls <see cref="OnInitializeAsync"/> to perform the actual initialization logic.
+        /// Finally, it sets <see cref="IsInitialized"/> to true.
+        /// </remarks>
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
             if (IsInitialized)
             {
                 return;
             }
-            try
-            {
-                await OnInitializeAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Debug.Assert(ex is OperationCanceledException, ex.Message);
-                throw;
-            }
+            await OnInitializeAsync(cancellationToken).ConfigureAwait(false);
             IsInitialized = true;
         }
 
@@ -251,27 +245,22 @@ namespace Minimal.Mvvm
         }
 
         /// <summary>
-        /// Asynchronously uninitializes the ViewModel.
-        /// This method performs various checks and throws exceptions if certain conditions are met,
-        /// such as if the ViewModel is already uninitialized.
+        /// Asynchronously uninitializes the ViewModel if it was initialized.
         /// </summary>
-        /// <param name="cancellationToken">Optional cancellation token to cancel the uninitialization process.</param>
+        /// <param name="cancellationToken">An optional cancellation token to cancel the uninitialization process.</param>
         /// <returns>A task that represents the asynchronous uninitialization operation.</returns>
+        /// <remarks>
+        /// This method checks if the ViewModel is already uninitialized. If it is not,
+        /// it calls <see cref="OnUninitializeAsync"/> to perform the actual uninitialization logic.
+        /// Finally, it sets <see cref="IsInitialized"/> to false.
+        /// </remarks>
         public async Task UninitializeAsync(CancellationToken cancellationToken = default)
         {
             if (!IsInitialized)
             {
                 return;
             }
-            try
-            {
-                await OnUninitializeAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Debug.Fail(ex.Message);
-                throw;
-            }
+            await OnUninitializeAsync(cancellationToken).ConfigureAwait(false);
             IsInitialized = false;
         }
 

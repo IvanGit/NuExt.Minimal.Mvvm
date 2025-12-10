@@ -16,7 +16,6 @@ namespace Minimal.Mvvm
         /// <exception cref="ArgumentNullException">Thrown if the execute argument is null.</exception>
         public RelayCommand(Action execute) : this(execute, null)
         {
-
         }
 
         /// <summary>
