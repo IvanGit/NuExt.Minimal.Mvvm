@@ -51,9 +51,7 @@ namespace Minimal.Mvvm
         private static IServiceContainer? s_custom;
 
         private readonly ConcurrentDictionary<ServiceKey, ServiceValue> _services = new();
-
         private readonly IServiceProvider? _parentProvider;
-
         private readonly AsyncLocal<bool> _isRecursive = new();
 
         /// <summary>
@@ -88,47 +86,25 @@ namespace Minimal.Mvvm
 
         #region Methods
 
-        /// <summary>
-        /// Gets a service object of type <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of service object to get.</typeparam>
-        /// <returns>A service object of type <typeparamref name="T"/> or null if there is no such service.</returns>
+        /// <inheritdoc />
         public T? GetService<T>() where T : class
         {
-            return (T?)GetService(typeof(T), (string?)null);
+            return (T?)GetService(serviceType: typeof(T), name: null);
         }
 
-        /// <summary>
-        /// Gets a named service object of type <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of service object to get.</typeparam>
-        /// <param name="name">
-        /// The name of the service to resolve. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <returns>A service object of type <typeparamref name="T"/> or null if there is no such service.</returns>
-        public T? GetService<T>(string name) where T : class
+        /// <inheritdoc />
+        public T? GetService<T>(string? name) where T : class
         {
-            return (T?)GetService(typeof(T), name);
+            return (T?)GetService(serviceType: typeof(T), name: name);
         }
 
-        /// <summary>
-        /// Gets a service object of the specified type.
-        /// </summary>
-        /// <param name="serviceType">An object that specifies the type of service object to get.</param>
-        /// <returns>A service object of the specified type, or null if there is no such service.</returns>
+        /// <inheritdoc />
         object? IServiceProvider.GetService(Type serviceType)
         {
-            return GetService(serviceType, (string?)null);
+            return GetService(serviceType: serviceType, name: null);
         }
 
-        /// <summary>
-        /// Gets a named service object of the specified type.
-        /// </summary>
-        /// <param name="serviceType">An object that specifies the type of service object to get.</param>
-        /// <param name="name">
-        /// The name of the service to resolve. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <returns>A service object of the specified type, or null if there is no such service.</returns>
+        /// <inheritdoc />
         public object? GetService(Type serviceType, string? name)
         {
 #if NET6_0_OR_GREATER
@@ -141,43 +117,104 @@ namespace Minimal.Mvvm
                 return null;
             }
 
+            /* priorities:
+            * 1. exact match (type+name)
+            * 2. if named (name != null):
+            *      2.1 local search name match & type assignment
+            *      2.2 parent search
+            *      2.3 exit (no fallback)
+            * 3. if unnamed (name == null):
+            *      3.1 local search by null name & type assignment
+            *      3.2 local search by non-null name & type assignment
+            *      3.3 parent search
+            *      3.4 exit
+            */
+
             var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
+
+            //1. exact match (type+name)
             if (_services.TryGetValue(key, out var serviceValue))
             {
                 return serviceValue.Service.Value;
             }
 
-            foreach (var pair in _services)
+            //2. if named (name != null):
+            if (key.Name != null)
             {
-                bool isApplicable = key.Name == null || key.Name == pair.Key.Name;
-                if (!isApplicable)
+                //2.1 local search name match & type assignment
+                foreach (var pair in _services)
                 {
-                    continue;
-                }
-                if (pair.Value.Service.IsValueCreated)
-                {
-                    if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                    if (key.Name != pair.Key.Name) continue;
+                    if (pair.Value.Service.IsValueCreated)
+                    {
+                        if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                        {
+                            return pair.Value.Service.Value;
+                        }
+                        continue;
+                    }
+                    if (serviceType.IsAssignableFrom(pair.Key.Type))
                     {
                         return pair.Value.Service.Value;
                     }
-                    continue;
-                }
-                if (serviceType.IsAssignableFrom(pair.Key.Type))
-                {
-                    return pair.Value.Service.Value;
                 }
             }
+            else //3. if unnamed (name == null):
+            {
+                //3.1 local search by null name & type assignment
+                foreach (var pair in _services)
+                {
+                    if (pair.Key.Name != null) continue;
+                    if (pair.Value.Service.IsValueCreated)
+                    {
+                        if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                        {
+                            return pair.Value.Service.Value;
+                        }
+                        continue;
+                    }
+                    if (serviceType.IsAssignableFrom(pair.Key.Type))
+                    {
+                        return pair.Value.Service.Value;
+                    }
+                }
+
+                //3.2 local search by non-null name & type assignment
+                foreach (var pair in _services)
+                {
+                    if (pair.Key.Name == null) continue;
+                    if (pair.Value.Service.IsValueCreated)
+                    {
+                        if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                        {
+                            return pair.Value.Service.Value;
+                        }
+                        continue;
+                    }
+                    if (serviceType.IsAssignableFrom(pair.Key.Type))
+                    {
+                        return pair.Value.Service.Value;
+                    }
+                }
+
+            }
+
+            //2.2 parent search
+            //3.3 parent search
 
             if (_parentProvider == null) return null;
+
+            var viewModelBase = _parentProvider as ViewModelBase;
+            if (viewModelBase == null && key.Name != null) return null;
 
             _isRecursive.Value = true;
             try
             {
-                if (_parentProvider is ViewModelBase viewModelBase)
+                if (viewModelBase != null)
                 {
-                    return viewModelBase.GetService(serviceType, name);
+                    return viewModelBase.GetService(serviceType, key.Name);
                 }
-                return _parentProvider.GetService(serviceType);
+                return key.Name == null ? _parentProvider.GetService(serviceType) : null;
             }
             finally
             {
@@ -185,11 +222,16 @@ namespace Minimal.Mvvm
             }
         }
 
-        /// <summary>
-        /// Gets all registered services of a specified type.
-        /// </summary>
-        /// <param name="serviceType">The type of services to retrieve.</param>
-        /// <returns>An enumerable of services of the specified type.</returns>
+        /// <inheritdoc />
+        public IEnumerable<T> GetServices<T>() where T : class
+        {
+            foreach (object? obj in GetServices(typeof(T)))
+            {
+                yield return (T)obj!;
+            }
+        }
+
+        /// <inheritdoc />
         public IEnumerable<object?> GetServices(Type serviceType)
         {
 #if NET6_0_OR_GREATER
@@ -203,47 +245,52 @@ namespace Minimal.Mvvm
                 yield break;
             }
 
+            var services = new HashSet<object>();
+
             foreach (var pair in _services)
             {
                 if (pair.Value.Service.IsValueCreated)
                 {
-                    if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                    var value = pair.Value.Service.Value;
+                    if (value != null && serviceType.IsInstanceOfType(value) && services.Add(value))
                     {
-                        yield return pair.Value.Service.Value;
+                        yield return value;
                     }
                     continue;
                 }
                 if (serviceType.IsAssignableFrom(pair.Key.Type))
                 {
-                    yield return pair.Value.Service.Value;
+                    var value = pair.Value.Service.Value;
+                    if (value != null && services.Add(value))
+                    {
+                        yield return value;
+                    }
                 }
             }
+
+            if (_parentProvider == null) yield break;
 
             _isRecursive.Value = true;
             try
             {
-                var services = new HashSet<object>();
                 if (_parentProvider is ViewModelBase { ParentViewModel: ViewModelBase parentViewModel })
                 {
-                    foreach (var srv in parentViewModel.Services.GetServices(serviceType))
+                    foreach (var service in parentViewModel.Services.GetServices(serviceType))
                     {
-                        if (srv == null)
+                        Debug.Assert(service != null, $"Service is null for type {serviceType}");
+                        if (service != null && services.Add(service))
                         {
-                            Debug.Fail($"Service is null for type {serviceType}");
-                            continue;
+                            yield return service;
                         }
-                        services.Add(srv);
                     }
                 }
-
-                var service = _parentProvider?.GetService(serviceType);
-                if (service != null)
+                else
                 {
-                    services.Add(service);
-                }
-                foreach (var srv in services)
-                {
-                    yield return srv;
+                    var service = _parentProvider.GetService(serviceType);
+                    if (service != null && services.Add(service))
+                    {
+                        yield return service;
+                    }
                 }
             }
             finally
@@ -254,36 +301,19 @@ namespace Minimal.Mvvm
 
         #region Object registration
 
-        /// <summary>
-        /// Registers a service instance for a specific type.
-        /// </summary>
-        /// <typeparam name="T">The type of the service.</typeparam>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService<T>(T service, bool throwIfExists = false) where T : class
         {
-            RegisterService(typeof(T), service, (string?)null, throwIfExists);
+            RegisterService(serviceType: typeof(T), service: service, name: null, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a named service instance for a specific type.
-        /// </summary>
-        /// <typeparam name="T">The type of the service.</typeparam>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        public void RegisterService<T>(T service, string name, bool throwIfExists = false) where T : class
+        /// <inheritdoc />
+        public void RegisterService<T>(T service, string? name, bool throwIfExists = false) where T : class
         {
-            RegisterService(typeof(T), service, name, throwIfExists);
+            RegisterService(serviceType: typeof(T), service: service, name: name, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a service instance.
-        /// </summary>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(object service, bool throwIfExists = false)
         {
 #if NET6_0_OR_GREATER
@@ -291,17 +321,10 @@ namespace Minimal.Mvvm
 #else
             _ = service ?? throw new ArgumentNullException(nameof(service));
 #endif
-            RegisterService(service.GetType(), service, (string?)null, throwIfExists);
+            RegisterService(serviceType: service.GetType(), service: service, name: null, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a named service instance.
-        /// </summary>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(object service, string? name, bool throwIfExists = false)
         {
 #if NET6_0_OR_GREATER
@@ -309,29 +332,16 @@ namespace Minimal.Mvvm
 #else
             _ = service ?? throw new ArgumentNullException(nameof(service));
 #endif
-            RegisterService(service.GetType(), service, name, throwIfExists);
+            RegisterService(serviceType: service.GetType(), service: service, name: name, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a service instance for a specific type.
-        /// </summary>
-        /// <param name="serviceType">The type of the service.</param>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(Type serviceType, object service, bool throwIfExists = false)
         {
-            RegisterService(serviceType, service, (string?)null, throwIfExists);
+            RegisterService(serviceType: serviceType, service: service, name: null, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a named service instance for a specific type.
-        /// </summary>
-        /// <param name="serviceType">The type of the service.</param>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(Type serviceType, object service, string? name, bool throwIfExists = false)
         {
 #if NET6_0_OR_GREATER
@@ -341,82 +351,52 @@ namespace Minimal.Mvvm
             _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
             _ = service ?? throw new ArgumentNullException(nameof(service));
 #endif
+            if (!serviceType.IsInstanceOfType(service))
+            {
+                throw new ArgumentException($"Service must be assignable to {serviceType}", nameof(service));
+            }
+
             var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
-            bool isExist = _services.TryGetValue(key, out _);
-            if (throwIfExists && isExist)
-            {
-                ThrowServiceExistsException(serviceType);
-            }
-            if (isExist)
-            {
-                UnregisterService(key);
-            }
-            _services[key] = new ServiceValue(service);
+            RegisterServiceCore(key, new ServiceValue(service), throwIfExists);
         }
 
         #endregion
 
         #region Factory registration
 
-        /// <summary>
-        /// Registers a service with a callback function for a specific type.
-        /// </summary>
-        /// <typeparam name="T">The type of the service.</typeparam>
-        /// <param name="callback">The callback function to create the service instance.</param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        public void RegisterService<T>(Func<T> callback, bool throwIfExists = false)
+        /// <inheritdoc />
+        public void RegisterService<T>(Func<T> callback, bool throwIfExists = false) where T : class
         {
             try
             {
-                RegisterService(typeof(T), (Func<object>)(object)callback, (string?)null, throwIfExists);
+                RegisterService(serviceType: typeof(T), callback: (Func<object>)(object)callback, name: null, throwIfExists);
             }
             catch (InvalidCastException)
             {
-                RegisterService(typeof(T), new Func<object>(() => callback()!), (string?)null, throwIfExists);
+                RegisterService(serviceType: typeof(T), callback: new Func<object>(() => callback()!), name: null, throwIfExists);
             }
         }
 
-        /// <summary>
-        /// Registers a named service with a callback function for a specific type.
-        /// </summary>
-        /// <typeparam name="T">The type of the service.</typeparam>
-        /// <param name="callback">The callback function to create the service instance.</param>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        public void RegisterService<T>(Func<T> callback, string name, bool throwIfExists = false)
+        /// <inheritdoc />
+        public void RegisterService<T>(Func<T> callback, string? name, bool throwIfExists = false) where T : class
         {
             try
             {
-                RegisterService(typeof(T), (Func<object>)(object)callback, name, throwIfExists);
+                RegisterService(serviceType: typeof(T), callback: (Func<object>)(object)callback, name: name, throwIfExists);
             }
             catch (InvalidCastException)
             {
-                RegisterService(typeof(T), new Func<object>(() => callback()!), name, throwIfExists);
+                RegisterService(serviceType: typeof(T), callback: new Func<object>(() => callback()!), name: name, throwIfExists);
             }
         }
 
-        /// <summary>
-        /// Registers a service with a callback function.
-        /// </summary>
-        /// <param name="serviceType">The type of the service.</param>
-        /// <param name="callback">The callback function to create the service instance.</param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(Type serviceType, Func<object> callback, bool throwIfExists = false)
         {
-            RegisterService(serviceType, callback, (string?)null, throwIfExists);
+            RegisterService(serviceType: serviceType, callback: callback, name: null, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a named service with a callback function.
-        /// </summary>
-        /// <param name="serviceType">The type of the service.</param>
-        /// <param name="callback">The callback function to create the service instance.</param>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(Type serviceType, Func<object> callback, string? name, bool throwIfExists = false)
         {
 #if NET6_0_OR_GREATER
@@ -427,63 +407,32 @@ namespace Minimal.Mvvm
             _ = callback ?? throw new ArgumentNullException(nameof(callback));
 #endif
             var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
-            bool isExist = _services.TryGetValue(key, out _);
-            if (throwIfExists && isExist)
-            {
-                ThrowServiceExistsException(serviceType);
-            }
-            if (isExist)
-            {
-                UnregisterService(key);
-            }
-            _services[key] = new ServiceValue(callback);
+            RegisterServiceCore(key, new ServiceValue(callback), throwIfExists);
         }
 
         #endregion
 
         #region Type registration
 
-        /// <summary>
-        /// Registers a service of the specified type by invoking its default constructor.
-        /// </summary>
-        /// <typeparam name="T">The type of the service to register.</typeparam>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService<T>(bool throwIfExists = false) where T : class
         {
-            RegisterService(typeof(T), (string?)null, throwIfExists);
+            RegisterService(serviceType: typeof(T), name: null, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a named service of the specified type by invoking its default constructor.
-        /// </summary>
-        /// <typeparam name="T">The type of the service to register.</typeparam>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService<T>(string? name, bool throwIfExists = false) where T : class
         {
-            RegisterService(typeof(T), name, throwIfExists);
+            RegisterService(serviceType: typeof(T), name: name, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a service of the specified type by invoking its default constructor.
-        /// </summary>
-        /// <param name="serviceType">The type of the service to register.</param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(Type serviceType, bool throwIfExists = false)
         {
-            RegisterService(serviceType, (string?)null, throwIfExists);
+            RegisterService(serviceType: serviceType, name: null, throwIfExists);
         }
 
-        /// <summary>
-        /// Registers a named service of the specified type by invoking its default constructor.
-        /// </summary>
-        /// <param name="serviceType">The type of the service to register.</param>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
+        /// <inheritdoc />
         public void RegisterService(Type serviceType, string? name, bool throwIfExists = false)
         {
 #if NET6_0_OR_GREATER
@@ -492,30 +441,55 @@ namespace Minimal.Mvvm
             _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
 #endif
             var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
-            bool isExist = _services.TryGetValue(key, out _);
-            if (throwIfExists && isExist)
-            {
-                ThrowServiceExistsException(serviceType);
-            }
-            if (isExist)
-            {
-                UnregisterService(key);
-            }
-            _services[key] = new ServiceValue(serviceType);
+            RegisterServiceCore(key, new ServiceValue(serviceType), throwIfExists);
         }
 
         #endregion
+
+        private void RegisterServiceCore(ServiceKey key, ServiceValue value, bool throwIfExists)
+        {
+            if (throwIfExists)
+            {
+                if (!_services.TryAdd(key, value))
+                {
+                    ThrowServiceExistsException(key.Type);
+                }
+                return;
+            }
+
+            ServiceValue? replacedValue = null;
+            _services.AddOrUpdate(key, value, (k, oldValue) => { replacedValue = oldValue; return value; });
+            if (replacedValue.HasValue)
+            {
+                OnServiceRemoved(key, replacedValue.Value);
+            }
+        }
+
+        private static void OnServiceRemoved(ServiceKey key, ServiceValue value)
+        {
+            if (!value.Service.IsValueCreated) return;
+
+            if (value.Service.Value is IDisposable disposable)
+            {
+                try
+                {
+                    disposable.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    var message = $"Dispose failed for service ['{key.Name ?? "(unnamed)"}', {key.Type}]: {ex.Message}";
+                    Debug.Fail(message);
+                    Trace.WriteLine(message);
+                }
+            }
+        }
 
         private static void ThrowServiceExistsException(Type serviceType)
         {
             throw new InvalidOperationException($"Service of type {serviceType} is already registered.");
         }
 
-        /// <summary>
-        /// Unregisters a service instance.
-        /// </summary>
-        /// <param name="service">The service instance to unregister.</param>
-        /// <returns><c>true</c> if the service was successfully unregistered; otherwise, <c>false</c>.</returns>
+        /// <inheritdoc />
         public bool UnregisterService(object service)
         {
 #if NET6_0_OR_GREATER
@@ -534,47 +508,25 @@ namespace Minimal.Mvvm
             return key.HasValue && UnregisterService(key.Value);
         }
 
-        /// <summary>
-        /// Unregisters a service of type <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of the service to unregister.</typeparam>
-        /// <returns><c>true</c> if the service was successfully unregistered; otherwise, <c>false</c>.</returns>
+        /// <inheritdoc />
         public bool UnregisterService<T>() where T : class
         {
-            return UnregisterService(typeof(T), (string?)null);
+            return UnregisterService(serviceType: typeof(T), name: null);
         }
 
-        /// <summary>
-        /// Unregisters a named service of type <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of the service to unregister.</typeparam>
-        /// <param name="name">
-        /// The name of the service to unregister. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <returns><c>true</c> if the service was successfully unregistered; otherwise, <c>false</c>.</returns>
+        /// <inheritdoc />
         public bool UnregisterService<T>(string name) where T : class
         {
-            return UnregisterService(typeof(T), name);
+            return UnregisterService(serviceType: typeof(T), name: name);
         }
 
-        /// <summary>
-        /// Unregisters a service of the specified type.
-        /// </summary>
-        /// <param name="serviceType">The type of the service to unregister.</param>
-        /// <returns><c>true</c> if the service was successfully unregistered; otherwise, <c>false</c>.</returns>
+        /// <inheritdoc />
         public bool UnregisterService(Type serviceType)
         {
-            return UnregisterService(serviceType, (string?)null);
+            return UnregisterService(serviceType: serviceType, name: null);
         }
 
-        /// <summary>
-        /// Unregisters a named service of the specified type.
-        /// </summary>
-        /// <param name="serviceType">The type of the service to unregister.</param>
-        /// <param name="name">
-        /// The name of the service to unregister. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <returns><c>true</c> if the service was successfully unregistered; otherwise, <c>false</c>.</returns>
+        /// <inheritdoc />
         public bool UnregisterService(Type serviceType, string? name)
         {
 #if NET6_0_OR_GREATER
@@ -588,7 +540,21 @@ namespace Minimal.Mvvm
 
         private bool UnregisterService(ServiceKey key)
         {
-            return _services.TryRemove(key, out _);
+            if (!_services.TryRemove(key, out var value)) return false;
+            OnServiceRemoved(key, value);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public void Clear()
+        {
+            var entries = _services.ToArray();
+            _services.Clear();
+
+            foreach (var entry in entries)
+            {
+                OnServiceRemoved(entry.Key, entry.Value);
+            }
         }
 
         #endregion

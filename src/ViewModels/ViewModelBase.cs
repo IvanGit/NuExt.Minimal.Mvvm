@@ -17,6 +17,7 @@ namespace Minimal.Mvvm
     public abstract class ViewModelBase : BindableBase, IServiceProvider
     {
         private readonly Lazy<IServiceContainer> _services;
+        private readonly SemaphoreSlim _initLock = new(1, 1);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ViewModelBase"/> class.
@@ -48,20 +49,12 @@ namespace Minimal.Mvvm
         }
 #endif
 
-        private bool _isInitialized;
+        private volatile bool _isInitialized;
         /// <summary>
         /// Gets a value indicating whether the ViewModel has been initialized.
+        /// This property is thread-safe for reading.
         /// </summary>
-        public bool IsInitialized
-        {
-            get => _isInitialized;
-            private set
-            {
-                if (_isInitialized == value) return;
-                _isInitialized = value;
-                OnPropertyChanged(EventArgsCache.IsInitializedPropertyChanged);
-            }
-        }
+        public bool IsInitialized => _isInitialized;
 
         private object? _parameter;
         /// <summary>
@@ -105,7 +98,6 @@ namespace Minimal.Mvvm
         /// <summary>
         /// Gets the thread on which the current instance was created.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public Thread Thread
 #if NETFRAMEWORK || WINDOWS
             => Dispatcher.Thread;
@@ -121,7 +113,6 @@ namespace Minimal.Mvvm
         /// Checks if the current thread is the same as the thread on which this instance was created.
         /// </summary>
         /// <returns>True if the current thread is the same as the creation thread; otherwise, false.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool CheckAccess()
         {
@@ -191,23 +182,64 @@ namespace Minimal.Mvvm
         }
 
         /// <summary>
-        /// Asynchronously initializes the ViewModel.
+        /// Asynchronously initializes the ViewModel. This method is thread-safe and idempotent.
         /// </summary>
         /// <param name="cancellationToken">An optional cancellation token to cancel the initialization process.</param>
         /// <returns>A task that represents the asynchronous initialization operation.</returns>
         /// <remarks>
-        /// This method checks if the ViewModel is already initialized. If it is not,
-        /// it calls <see cref="OnInitializeAsync"/> to perform the actual initialization logic.
-        /// Finally, it sets <see cref="IsInitialized"/> to true.
+        /// If the ViewModel is already initialized, the method returns immediately.
+        /// Otherwise, it acquires an initialization lock, calls <see cref="OnInitializeAsync"/>,
+        /// updates the initialized state, and notifies property change after releasing the lock.
         /// </remarks>
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
-            if (IsInitialized)
+            if (_isInitialized) return;
+
+            await _initLock.WaitAsync(cancellationToken);
+            try
             {
-                return;
+                if (_isInitialized) return;
+
+                await OnInitializeAsync(cancellationToken);
+
+                _isInitialized = true;
             }
-            await OnInitializeAsync(cancellationToken).ConfigureAwait(false);
-            IsInitialized = true;
+            finally
+            {
+                _initLock.Release();
+            }
+
+            OnPropertyChanged(EventArgsCache.IsInitializedPropertyChanged);
+        }
+
+        /// <summary>
+        /// Asynchronously uninitializes the ViewModel if it was initialized. This method is thread-safe.
+        /// </summary>
+        /// <param name="cancellationToken">An optional cancellation token to cancel the uninitialization process.</param>
+        /// <returns>A task that represents the asynchronous uninitialization operation.</returns>
+        /// <remarks>
+        /// If the ViewModel is not initialized, the method returns immediately.
+        /// Otherwise, it acquires the initialization lock, calls <see cref="OnUninitializeAsync"/>,
+        /// updates the initialized state, and notifies property change after releasing the lock.
+        /// </remarks>
+        public async Task UninitializeAsync(CancellationToken cancellationToken = default)
+        {
+            if (!_isInitialized) return;
+
+            await _initLock.WaitAsync(cancellationToken);
+            try
+            {
+                if (!_isInitialized) return;
+
+                await OnUninitializeAsync(cancellationToken);
+                _isInitialized = false;
+            }
+            finally
+            {
+                _initLock.Release();
+            }
+
+            OnPropertyChanged(EventArgsCache.IsInitializedPropertyChanged);
         }
 
         /// <summary>
@@ -241,34 +273,13 @@ namespace Minimal.Mvvm
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowInvalidThreadAccess()
         {
-            throw new InvalidOperationException("The calling thread cannot access this object because it is owned by a different thread.");
-        }
-
-        /// <summary>
-        /// Asynchronously uninitializes the ViewModel if it was initialized.
-        /// </summary>
-        /// <param name="cancellationToken">An optional cancellation token to cancel the uninitialization process.</param>
-        /// <returns>A task that represents the asynchronous uninitialization operation.</returns>
-        /// <remarks>
-        /// This method checks if the ViewModel is already uninitialized. If it is not,
-        /// it calls <see cref="OnUninitializeAsync"/> to perform the actual uninitialization logic.
-        /// Finally, it sets <see cref="IsInitialized"/> to false.
-        /// </remarks>
-        public async Task UninitializeAsync(CancellationToken cancellationToken = default)
-        {
-            if (!IsInitialized)
-            {
-                return;
-            }
-            await OnUninitializeAsync(cancellationToken).ConfigureAwait(false);
-            IsInitialized = false;
+            throw new InvalidOperationException("The calling thread cannot access this object because a different thread owns it.");
         }
 
         /// <summary>
         /// Checks if the current thread is the same as the thread on which this instance was created and throws an <see cref="InvalidOperationException"/> if not.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the current thread is not the same as the thread on which this instance was created.</exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void VerifyAccess()
         {

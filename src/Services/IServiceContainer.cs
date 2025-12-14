@@ -22,7 +22,7 @@ namespace Minimal.Mvvm
         /// The name of the service to resolve. This can be used to distinguish between multiple services of the same type.
         /// </param>
         /// <returns>A service object of type <typeparamref name="T"/> or null if there is no such service.</returns>
-        T? GetService<T>(string name) where T : class;
+        T? GetService<T>(string? name) where T : class;
         /// <summary>
         /// Gets a named service object of the specified type.
         /// </summary>
@@ -33,6 +33,12 @@ namespace Minimal.Mvvm
         /// <returns>A service object of the specified type, or null if there is no such service.</returns>
         object? GetService(Type serviceType, string? name);
 
+        /// <summary>
+        ///  Gets all registered services of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of service object to get.</typeparam>
+        /// <returns>An enumerable of services of type <typeparamref name="T"/>.</returns>
+        IEnumerable<T> GetServices<T>() where T : class;
         /// <summary>
         /// Gets all registered services of a specified type.
         /// </summary>
@@ -56,7 +62,7 @@ namespace Minimal.Mvvm
         /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
         /// </param>
         /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        void RegisterService<T>(T service, string name, bool throwIfExists = false) where T : class;
+        void RegisterService<T>(T service, string? name, bool throwIfExists = false) where T : class;
         /// <summary>
         /// Registers a service instance.
         /// </summary>
@@ -96,7 +102,7 @@ namespace Minimal.Mvvm
         /// <typeparam name="T">The type of the service.</typeparam>
         /// <param name="callback">The callback function to create the service instance.</param>
         /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        void RegisterService<T>(Func<T> callback, bool throwIfExists = false);
+        void RegisterService<T>(Func<T> callback, bool throwIfExists = false) where T : class;
         /// <summary>
         /// Registers a named service with a callback function for a specific type.
         /// </summary>
@@ -106,7 +112,7 @@ namespace Minimal.Mvvm
         /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
         /// </param>
         /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        void RegisterService<T>(Func<T> callback, string name, bool throwIfExists = false);
+        void RegisterService<T>(Func<T> callback, string? name, bool throwIfExists = false) where T : class;
         /// <summary>
         /// Registers a service with a callback function.
         /// </summary>
@@ -188,9 +194,13 @@ namespace Minimal.Mvvm
         /// </summary>
         /// <param name="serviceType">The type of the service to unregister.</param>
         /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
+        /// The name of the service to unregister. This can be used to distinguish between multiple services of the same type.
         /// </param>
         /// <returns><c>true</c> if the service was successfully unregistered; otherwise, <c>false</c>.</returns>
         bool UnregisterService(Type serviceType, string? name);
+        /// <summary>
+        /// Removes all service registrations from this container.
+        /// </summary>
+        void Clear();
     }
 }
