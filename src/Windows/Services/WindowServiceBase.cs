@@ -12,7 +12,11 @@ namespace Minimal.Mvvm.Windows
 
         private static readonly DependencyPropertyKey WindowPropertyKey = DependencyProperty.RegisterReadOnly(
             nameof(Window), typeof(Window), typeof(WindowServiceBase),
-            new PropertyMetadata(null, (d, e) => ((WindowServiceBase)d).OnWindowChanged((Window?)e.OldValue)));
+            new PropertyMetadata(null, (d, e) => ((WindowServiceBase)d).OnWindowChanged((Window?)e.OldValue, (Window?)e.NewValue)));
+
+        /// <summary>
+        /// Identifies the <see cref="Window"/> dependency property.
+        /// </summary>
         public static readonly DependencyProperty WindowProperty = WindowPropertyKey.DependencyProperty;
 
         #endregion
@@ -32,12 +36,18 @@ namespace Minimal.Mvvm.Windows
 
         #region Event Handlers
 
+        private void OnAssociatedObjectLoaded(object sender, RoutedEventArgs e)
+        {
+            UpdateWindow();
+        }
+
         /// <summary>
         /// Called when the Window associated with this service changes.
         /// Override this method to implement custom handling logic.
         /// </summary>
         /// <param name="oldWindow">The previous Window instance.</param>
-        protected virtual void OnWindowChanged(Window? oldWindow)
+        /// <param name="newWindow">The new Window instance.</param>
+        protected virtual void OnWindowChanged(Window? oldWindow, Window? newWindow)
         {
 
         }
@@ -53,7 +63,10 @@ namespace Minimal.Mvvm.Windows
         protected override void OnAttached()
         {
             base.OnAttached();
-            Window = AssociatedObject as Window ?? Window.GetWindow(AssociatedObject!);
+
+            AssociatedObject!.Loaded += OnAssociatedObjectLoaded;
+
+            UpdateWindow();
         }
 
         /// <summary>
@@ -62,8 +75,21 @@ namespace Minimal.Mvvm.Windows
         /// </summary>
         protected override void OnDetaching()
         {
+            AssociatedObject!.Loaded -= OnAssociatedObjectLoaded;
+
             Window = null;
             base.OnDetaching();
+        }
+
+        private void UpdateWindow()
+        {
+            var oldWindow = Window;
+            var newWindow = AssociatedObject as Window ?? Window.GetWindow(AssociatedObject);
+
+            if (!ReferenceEquals(oldWindow, newWindow))
+            {
+                Window = newWindow;
+            }
         }
 
         #endregion

@@ -56,6 +56,7 @@ namespace Minimal.Mvvm.Windows
                 _associatedObject = value;
                 WritePostscript();
                 OnPropertyChanged(EventArgsCache.AssociatedObjectPropertyChanged);
+                OnPropertyChanged(EventArgsCache.IsAttachedPropertyChanged);
             }
         }
 
@@ -70,6 +71,11 @@ namespace Minimal.Mvvm.Windows
                 return _associatedType;
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this behavior is attached.
+        /// </summary>
+        public bool IsAttached => AssociatedObject != null;
 
         /// <summary>
         /// Gets or sets a value indicating whether this behavior is enabled.
@@ -210,6 +216,7 @@ namespace Minimal.Mvvm.Windows
     internal static class EventArgsCache
     {
         internal static readonly PropertyChangedEventArgs AssociatedObjectPropertyChanged = new(nameof(Behavior.AssociatedObject));
+        internal static readonly PropertyChangedEventArgs IsAttachedPropertyChanged = new(nameof(Behavior.IsAttached));
     }
 }
 #endif

@@ -52,7 +52,7 @@ namespace Minimal.Mvvm
 
         private readonly ConcurrentDictionary<ServiceKey, ServiceValue> _services = new();
         private readonly IServiceProvider? _parentProvider;
-        private readonly AsyncLocal<bool> _isRecursive = new();
+        private readonly ThreadLocal<bool> _isRecursive = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceProvider"/> class.

@@ -1,4 +1,5 @@
 ﻿#if NETFRAMEWORK || WINDOWS
+using System;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -7,6 +8,7 @@ namespace Minimal.Mvvm.Windows
 {
     /// <summary>
     /// Represents a base class for services that can be attached to a FrameworkElement.
+    /// Provides automatic registration with the ViewModel's service container when the DataContext changes.
     /// </summary>
     /// <typeparam name="T">The type of the FrameworkElement to which this service is attached.</typeparam>
     [RuntimeNameProperty(nameof(Name))]
@@ -22,17 +24,18 @@ namespace Minimal.Mvvm.Windows
             new PropertyMetadata(null, (d, e) => ((ServiceBase<T>)d).OnDataContextChanged(e.OldValue, e.NewValue)));
 
         /// <summary>
-        /// Identifies the Name dependency property.
+        /// Identifies the <see cref="Name"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty NameProperty = DependencyProperty.Register(
-            nameof(Name), typeof(string), typeof(ServiceBase<T>));
+            nameof(Name), typeof(string), typeof(ServiceBase<T>),
+            new PropertyMetadata(null, (d, e) => ((ServiceBase<T>)d).OnNameChanged((string?)e.OldValue, (string?)e.NewValue)));
 
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// The name of the service.
+        /// Gets or sets the name of the service.
         /// </summary>
         public string Name
         {
@@ -40,11 +43,28 @@ namespace Minimal.Mvvm.Windows
             set => SetValue(NameProperty, value);
         }
 
+        private bool _shouldRegisterInViewModel = true;
         /// <summary>
         /// Gets or sets a value indicating whether the service should register itself in the ViewModel.
-        /// Default value is true.
+        /// Default value is <see langword="true"/>.
         /// </summary>
-        public bool ShouldRegisterInViewModel { get; set; } = true;
+        /// <remarks>
+        /// <para>
+        /// This property should be set during initialization (typically in XAML) and not changed afterwards.
+        /// </para>
+        /// <para>
+        /// Changing this property while the service is attached has no effect.
+        /// </para>
+        /// </remarks>
+        public bool ShouldRegisterInViewModel 
+        {
+            get => _shouldRegisterInViewModel;
+            set
+            {
+                if (IsAttached) return;
+                _shouldRegisterInViewModel = value;
+            }
+        }
 
         #endregion
 
@@ -72,6 +92,29 @@ namespace Minimal.Mvvm.Windows
             }
         }
 
+        /// <summary>
+        /// Called when the <see cref="Name"/> property changes.
+        /// Registers or unregisters the service in the ViewModel as needed.
+        /// </summary>
+        /// <param name="oldName">The old Name value.</param>
+        /// <param name="newName">The new Name value.</param>
+        protected virtual void OnNameChanged(string? oldName, string? newName)
+        {
+            if (!ShouldRegisterInViewModel)
+            {
+                return;
+            }
+            if (string.Equals(oldName, newName, StringComparison.Ordinal))
+            {
+                return;
+            }
+            if (GetValue(DataContextProperty) is ViewModelBase viewModel)
+            {
+                viewModel.Services.UnregisterService(this);
+                viewModel.Services.RegisterService((object)this, newName, true);
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -93,6 +136,17 @@ namespace Minimal.Mvvm.Windows
                 Path = new PropertyPath(FrameworkElement.DataContextProperty),
                 Mode = BindingMode.OneWay
             });
+        }
+
+        /// <summary>
+        /// Called before the behavior is detached from an AssociatedObject.
+        /// Clean up a binding to the DataContext of the associated FrameworkElement.
+        /// </summary>
+        protected override void OnDetaching()
+        {
+            BindingOperations.ClearBinding(this, DataContextProperty);
+
+            base.OnDetaching();
         }
 
         #endregion
