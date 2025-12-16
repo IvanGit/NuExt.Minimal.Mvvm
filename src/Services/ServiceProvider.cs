@@ -299,7 +299,7 @@ namespace Minimal.Mvvm
             }
         }
 
-        #region Object registration
+        #region Instance registration
 
         /// <inheritdoc />
         public void RegisterService<T>(T service, bool throwIfExists = false) where T : class
@@ -311,28 +311,6 @@ namespace Minimal.Mvvm
         public void RegisterService<T>(T service, string? name, bool throwIfExists = false) where T : class
         {
             RegisterService(serviceType: typeof(T), service: service, name: name, throwIfExists);
-        }
-
-        /// <inheritdoc />
-        public void RegisterService(object service, bool throwIfExists = false)
-        {
-#if NET6_0_OR_GREATER
-            ArgumentNullException.ThrowIfNull(service);
-#else
-            _ = service ?? throw new ArgumentNullException(nameof(service));
-#endif
-            RegisterService(serviceType: service.GetType(), service: service, name: null, throwIfExists);
-        }
-
-        /// <inheritdoc />
-        public void RegisterService(object service, string? name, bool throwIfExists = false)
-        {
-#if NET6_0_OR_GREATER
-            ArgumentNullException.ThrowIfNull(service);
-#else
-            _ = service ?? throw new ArgumentNullException(nameof(service));
-#endif
-            RegisterService(serviceType: service.GetType(), service: service, name: name, throwIfExists);
         }
 
         /// <inheritdoc />

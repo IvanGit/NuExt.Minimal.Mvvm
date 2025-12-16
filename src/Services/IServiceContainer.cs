@@ -64,21 +64,6 @@ namespace Minimal.Mvvm
         /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
         void RegisterService<T>(T service, string? name, bool throwIfExists = false) where T : class;
         /// <summary>
-        /// Registers a service instance.
-        /// </summary>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        void RegisterService(object service, bool throwIfExists = false);
-        /// <summary>
-        /// Registers a named service instance.
-        /// </summary>
-        /// <param name="service">The service instance to register.</param>
-        /// <param name="name">
-        /// The name of the service to register. This can be used to distinguish between multiple services of the same type.
-        /// </param>
-        /// <param name="throwIfExists">Specifies whether to throw an exception if the service already exists.</param>
-        public void RegisterService(object service, string? name, bool throwIfExists = false);
-        /// <summary>
         /// Registers a service instance for a specific type.
         /// </summary>
         /// <param name="serviceType">The type of the service.</param>

@@ -88,7 +88,7 @@ namespace Minimal.Mvvm.Windows
             }
             if (newDataContext is ViewModelBase newViewModel)
             {
-                newViewModel.Services.RegisterService((object)this, Name, true);
+                newViewModel.Services.RegisterService(GetType(), this, Name, true);
             }
         }
 
@@ -111,7 +111,7 @@ namespace Minimal.Mvvm.Windows
             if (GetValue(DataContextProperty) is ViewModelBase viewModel)
             {
                 viewModel.Services.UnregisterService(this);
-                viewModel.Services.RegisterService((object)this, newName, true);
+                viewModel.Services.RegisterService(GetType(), this, newName, true);
             }
         }
 
