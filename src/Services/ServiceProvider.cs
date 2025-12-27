@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Minimal.Mvvm
@@ -20,31 +21,41 @@ namespace Minimal.Mvvm
 
         private readonly struct ServiceValue
         {
-            public readonly Lazy<object?> Service;
+            private readonly Lazy<object?> Lazy;
 
             public ServiceValue(object service)
             {
                 Debug.Assert(service != null && service is not Func<object?> && service is not Type);
 #if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
-                Service = new Lazy<object?>(service);
+                Lazy = new Lazy<object?>(service);
 #else
-                Service = new Lazy<object?>(() => service);
-                _ = Service.Value;
+                Lazy = new Lazy<object?>(() => service);
+                _ = Lazy.Value;
 #endif
-                Debug.Assert(Service.IsValueCreated);
+                Debug.Assert(IsCreated);
             }
 
-            public ServiceValue(Func<object?> callback)
+            public ServiceValue(Func<object?> callback, Type expectedType)
             {
-                Service = new Lazy<object?>(callback);
-                Debug.Assert(!Service.IsValueCreated);
+                Lazy = new Lazy<object?>(() =>
+                {
+                    var service = callback();
+                    _ = service ?? throw new InvalidOperationException($"Factory callback returned null for type {expectedType}");
+                    ValidateTypeCompatibility(expectedType, service.GetType(), nameof(expectedType));
+                    return service;
+                });
+                Debug.Assert(!IsCreated);
             }
 
             public ServiceValue(Type serviceType)
             {
-                Service = new Lazy<object?>(() => Activator.CreateInstance(serviceType));
-                Debug.Assert(!Service.IsValueCreated);
+                Lazy = new Lazy<object?>(() => Activator.CreateInstance(serviceType));
+                Debug.Assert(!IsCreated);
             }
+
+            public readonly bool IsCreated => Lazy.IsValueCreated;
+
+            public readonly object Service => Lazy.Value!;
         }
 
         private static readonly IServiceContainer s_default = new ServiceProvider();
@@ -86,16 +97,10 @@ namespace Minimal.Mvvm
 
         #region Methods
 
-        /// <inheritdoc />
-        public T? GetService<T>() where T : class
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ServiceKey CreateServiceKey(Type serviceType, string? name)
         {
-            return (T?)GetService(serviceType: typeof(T), name: null);
-        }
-
-        /// <inheritdoc />
-        public T? GetService<T>(string? name) where T : class
-        {
-            return (T?)GetService(serviceType: typeof(T), name: name);
+            return new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
         }
 
         /// <inheritdoc />
@@ -130,12 +135,12 @@ namespace Minimal.Mvvm
             *      3.4 exit
             */
 
-            var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
+            var key = CreateServiceKey(serviceType, name);
 
             //1. exact match (type+name)
             if (_services.TryGetValue(key, out var serviceValue))
             {
-                return serviceValue.Service.Value;
+                return serviceValue.Service;
             }
 
             //2. if named (name != null):
@@ -145,17 +150,17 @@ namespace Minimal.Mvvm
                 foreach (var pair in _services)
                 {
                     if (key.Name != pair.Key.Name) continue;
-                    if (pair.Value.Service.IsValueCreated)
+                    if (pair.Value.IsCreated)
                     {
-                        if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                        if (serviceType.IsInstanceOfType(pair.Value.Service))
                         {
-                            return pair.Value.Service.Value;
+                            return pair.Value.Service;
                         }
                         continue;
                     }
                     if (serviceType.IsAssignableFrom(pair.Key.Type))
                     {
-                        return pair.Value.Service.Value;
+                        return pair.Value.Service;
                     }
                 }
             }
@@ -165,17 +170,17 @@ namespace Minimal.Mvvm
                 foreach (var pair in _services)
                 {
                     if (pair.Key.Name != null) continue;
-                    if (pair.Value.Service.IsValueCreated)
+                    if (pair.Value.IsCreated)
                     {
-                        if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                        if (serviceType.IsInstanceOfType(pair.Value.Service))
                         {
-                            return pair.Value.Service.Value;
+                            return pair.Value.Service;
                         }
                         continue;
                     }
                     if (serviceType.IsAssignableFrom(pair.Key.Type))
                     {
-                        return pair.Value.Service.Value;
+                        return pair.Value.Service;
                     }
                 }
 
@@ -183,17 +188,17 @@ namespace Minimal.Mvvm
                 foreach (var pair in _services)
                 {
                     if (pair.Key.Name == null) continue;
-                    if (pair.Value.Service.IsValueCreated)
+                    if (pair.Value.IsCreated)
                     {
-                        if (serviceType.IsInstanceOfType(pair.Value.Service.Value))
+                        if (serviceType.IsInstanceOfType(pair.Value.Service))
                         {
-                            return pair.Value.Service.Value;
+                            return pair.Value.Service;
                         }
                         continue;
                     }
                     if (serviceType.IsAssignableFrom(pair.Key.Type))
                     {
-                        return pair.Value.Service.Value;
+                        return pair.Value.Service;
                     }
                 }
 
@@ -223,16 +228,7 @@ namespace Minimal.Mvvm
         }
 
         /// <inheritdoc />
-        public IEnumerable<T> GetServices<T>() where T : class
-        {
-            foreach (object? obj in GetServices(typeof(T)))
-            {
-                yield return (T)obj!;
-            }
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<object?> GetServices(Type serviceType)
+        public IEnumerable<object> GetServices(Type serviceType)
         {
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(serviceType);
@@ -249,21 +245,21 @@ namespace Minimal.Mvvm
 
             foreach (var pair in _services)
             {
-                if (pair.Value.Service.IsValueCreated)
+                if (pair.Value.IsCreated)
                 {
-                    var value = pair.Value.Service.Value;
-                    if (value != null && serviceType.IsInstanceOfType(value) && services.Add(value))
+                    var service = pair.Value.Service;
+                    if (serviceType.IsInstanceOfType(service) && services.Add(service))
                     {
-                        yield return value;
+                        yield return service;
                     }
                     continue;
                 }
                 if (serviceType.IsAssignableFrom(pair.Key.Type))
                 {
-                    var value = pair.Value.Service.Value;
-                    if (value != null && services.Add(value))
+                    var service = pair.Value.Service;
+                    if (services.Add(service))
                     {
-                        yield return value;
+                        yield return service;
                     }
                 }
             }
@@ -302,18 +298,6 @@ namespace Minimal.Mvvm
         #region Instance registration
 
         /// <inheritdoc />
-        public void RegisterService<T>(T service, bool throwIfExists = false) where T : class
-        {
-            RegisterService(serviceType: typeof(T), service: service, name: null, throwIfExists);
-        }
-
-        /// <inheritdoc />
-        public void RegisterService<T>(T service, string? name, bool throwIfExists = false) where T : class
-        {
-            RegisterService(serviceType: typeof(T), service: service, name: name, throwIfExists);
-        }
-
-        /// <inheritdoc />
         public void RegisterService(Type serviceType, object service, bool throwIfExists = false)
         {
             RegisterService(serviceType: serviceType, service: service, name: null, throwIfExists);
@@ -329,44 +313,15 @@ namespace Minimal.Mvvm
             _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
             _ = service ?? throw new ArgumentNullException(nameof(service));
 #endif
-            if (!serviceType.IsInstanceOfType(service))
-            {
-                throw new ArgumentException($"Service must be assignable to {serviceType}", nameof(service));
-            }
+            ValidateTypeCompatibility(serviceType, service.GetType(), nameof(service));
 
-            var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
-            RegisterServiceCore(key, new ServiceValue(service), throwIfExists);
+            var key = CreateServiceKey(serviceType, name);
+            RegisterServiceCore(key, new ServiceValue(service: service), throwIfExists);
         }
 
         #endregion
 
         #region Factory registration
-
-        /// <inheritdoc />
-        public void RegisterService<T>(Func<T> callback, bool throwIfExists = false) where T : class
-        {
-            try
-            {
-                RegisterService(serviceType: typeof(T), callback: (Func<object>)(object)callback, name: null, throwIfExists);
-            }
-            catch (InvalidCastException)
-            {
-                RegisterService(serviceType: typeof(T), callback: new Func<object>(() => callback()!), name: null, throwIfExists);
-            }
-        }
-
-        /// <inheritdoc />
-        public void RegisterService<T>(Func<T> callback, string? name, bool throwIfExists = false) where T : class
-        {
-            try
-            {
-                RegisterService(serviceType: typeof(T), callback: (Func<object>)(object)callback, name: name, throwIfExists);
-            }
-            catch (InvalidCastException)
-            {
-                RegisterService(serviceType: typeof(T), callback: new Func<object>(() => callback()!), name: name, throwIfExists);
-            }
-        }
 
         /// <inheritdoc />
         public void RegisterService(Type serviceType, Func<object> callback, bool throwIfExists = false)
@@ -384,25 +339,37 @@ namespace Minimal.Mvvm
             _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
             _ = callback ?? throw new ArgumentNullException(nameof(callback));
 #endif
-            var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
-            RegisterServiceCore(key, new ServiceValue(callback), throwIfExists);
+            var key = CreateServiceKey(serviceType, name);
+            RegisterServiceCore(key, new ServiceValue(callback: callback, expectedType: serviceType), throwIfExists);
+        }
+
+        /// <inheritdoc />
+        public void RegisterService(Type serviceType, Type implementationType, Func<object> callback, bool throwIfExists = false)
+        {
+            RegisterService(serviceType: serviceType, implementationType: implementationType, callback: callback, name: null, throwIfExists);
+        }
+
+        /// <inheritdoc />
+        public void RegisterService(Type serviceType, Type implementationType, Func<object> callback, string? name, bool throwIfExists = false)
+        {
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(serviceType);
+            ArgumentNullException.ThrowIfNull(implementationType);
+            ArgumentNullException.ThrowIfNull(callback);
+#else
+            _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
+            _ = implementationType ?? throw new ArgumentNullException(nameof(implementationType));
+            _ = callback ?? throw new ArgumentNullException(nameof(callback));
+#endif
+            ValidateTypeCompatibility(serviceType, implementationType, nameof(implementationType));
+
+            var key = CreateServiceKey(serviceType, name);
+            RegisterServiceCore(key, new ServiceValue(callback: callback, expectedType: implementationType), throwIfExists);
         }
 
         #endregion
 
         #region Type registration
-
-        /// <inheritdoc />
-        public void RegisterService<T>(bool throwIfExists = false) where T : class
-        {
-            RegisterService(serviceType: typeof(T), name: null, throwIfExists);
-        }
-
-        /// <inheritdoc />
-        public void RegisterService<T>(string? name, bool throwIfExists = false) where T : class
-        {
-            RegisterService(serviceType: typeof(T), name: name, throwIfExists);
-        }
 
         /// <inheritdoc />
         public void RegisterService(Type serviceType, bool throwIfExists = false)
@@ -418,8 +385,30 @@ namespace Minimal.Mvvm
 #else
             _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
 #endif
-            var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
-            RegisterServiceCore(key, new ServiceValue(serviceType), throwIfExists);
+            var key = CreateServiceKey(serviceType, name);
+            RegisterServiceCore(key, new ServiceValue(serviceType: serviceType), throwIfExists);
+        }
+
+        /// <inheritdoc />
+        public void RegisterService(Type serviceType, Type implementationType, bool throwIfExists = false)
+        {
+            RegisterService(serviceType: serviceType, implementationType: implementationType, name: null, throwIfExists);
+        }
+
+        /// <inheritdoc />
+        public void RegisterService(Type serviceType, Type implementationType, string? name, bool throwIfExists = false)
+        {
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(serviceType);
+            ArgumentNullException.ThrowIfNull(implementationType);
+#else
+            _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
+            _ = implementationType ?? throw new ArgumentNullException(nameof(implementationType));
+#endif
+            ValidateTypeCompatibility(serviceType, implementationType, nameof(implementationType));
+
+            var key = CreateServiceKey(serviceType, name);
+            RegisterServiceCore(key, new ServiceValue(serviceType: implementationType), throwIfExists);
         }
 
         #endregion
@@ -445,9 +434,9 @@ namespace Minimal.Mvvm
 
         private static void OnServiceRemoved(ServiceKey key, ServiceValue value)
         {
-            if (!value.Service.IsValueCreated) return;
+            if (!value.IsCreated) return;
 
-            if (value.Service.Value is IDisposable disposable)
+            if (value.Service is IDisposable disposable)
             {
                 try
                 {
@@ -478,24 +467,12 @@ namespace Minimal.Mvvm
             ServiceKey? key = null;
             foreach (var pair in _services)
             {
-                if (!pair.Value.Service.IsValueCreated) continue;
-                if (pair.Value.Service.Value != service) continue;
+                if (!pair.Value.IsCreated) continue;
+                if (pair.Value.Service != service) continue;
                 key = pair.Key;
                 break;
             }
             return key.HasValue && UnregisterService(key.Value);
-        }
-
-        /// <inheritdoc />
-        public bool UnregisterService<T>() where T : class
-        {
-            return UnregisterService(serviceType: typeof(T), name: null);
-        }
-
-        /// <inheritdoc />
-        public bool UnregisterService<T>(string name) where T : class
-        {
-            return UnregisterService(serviceType: typeof(T), name: name);
         }
 
         /// <inheritdoc />
@@ -512,7 +489,7 @@ namespace Minimal.Mvvm
 #else
             _ = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
 #endif
-            var key = new ServiceKey(serviceType, !string.IsNullOrEmpty(name) ? name : null);
+            var key = CreateServiceKey(serviceType, name);
             return UnregisterService(key);
         }
 
@@ -532,6 +509,22 @@ namespace Minimal.Mvvm
             foreach (var entry in entries)
             {
                 OnServiceRemoved(entry.Key, entry.Value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ValidateTypeCompatibility(Type serviceType, Type implementationType, string paramName)
+        {
+            if (serviceType.IsGenericTypeDefinition || implementationType.IsGenericTypeDefinition)
+            {
+                throw new ArgumentException($"Open generic types are not supported. Register closed generic types instead.",
+                    paramName);
+            }
+
+            if (!serviceType.IsAssignableFrom(implementationType))
+            {
+                throw new ArgumentException($"Type {implementationType} must be assignable to {serviceType}", 
+                    paramName);
             }
         }
 
