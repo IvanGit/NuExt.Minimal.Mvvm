@@ -52,8 +52,13 @@ namespace Minimal.Mvvm
         private volatile bool _isInitialized;
         /// <summary>
         /// Gets a value indicating whether the ViewModel has been initialized.
-        /// This property is thread-safe for reading.
         /// </summary>
+        /// <value>
+        /// <c>true</c> if the ViewModel has been initialized; otherwise, <c>false</c>.
+        /// </value>
+        /// <remarks>
+        /// This property is thread-safe for reading.
+        /// </remarks>
         public bool IsInitialized => _isInitialized;
 
         private object? _parameter;
@@ -75,8 +80,10 @@ namespace Minimal.Mvvm
         private object? _parentViewModel;
         /// <summary>
         /// Gets or sets the parent ViewModel.
-        /// Throws an <see cref="InvalidOperationException"/> if set to itself.
         /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if set to the current instance itself.
+        /// </exception>
         public object? ParentViewModel
         {
             get => _parentViewModel;
@@ -166,6 +173,13 @@ namespace Minimal.Mvvm
         /// </param>
         /// <returns>A service object of type <paramref name="serviceType"/>. 
         /// If there is no service object of type <paramref name="serviceType"/>, returns <c>null</c>.</returns>
+        /// <remarks>
+        /// The service resolution order is:
+        /// 1. Local service container (<see cref="Services"/>).
+        /// 2. Parent <see cref="ViewModelBase"/> (if set), using the same <paramref name="name"/>.
+        /// 3. Parent <see cref="IServiceProvider"/> (if not a <see cref="ViewModelBase"/>), ignoring <paramref name="name"/>.
+        /// 4. Default service provider (<see cref="ServiceProvider.Default"/>), using the original <paramref name="name"/>.
+        /// </remarks>
         public object? GetService(Type serviceType, string? name)
         {
             var service = Services.GetService(serviceType, name);
@@ -188,7 +202,7 @@ namespace Minimal.Mvvm
         /// <returns>A task that represents the asynchronous initialization operation.</returns>
         /// <remarks>
         /// If the ViewModel is already initialized, the method returns immediately.
-        /// Otherwise, it acquires an initialization lock, calls <see cref="OnInitializeAsync"/>,
+        /// Otherwise, it acquires an initialization lock, calls <see cref="InitializeAsyncCore"/>,
         /// updates the initialized state, and notifies property change after releasing the lock.
         /// </remarks>
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -200,7 +214,7 @@ namespace Minimal.Mvvm
             {
                 if (_isInitialized) return;
 
-                await OnInitializeAsync(cancellationToken);
+                await InitializeAsyncCore(cancellationToken);
 
                 _isInitialized = true;
             }
@@ -219,7 +233,7 @@ namespace Minimal.Mvvm
         /// <returns>A task that represents the asynchronous uninitialization operation.</returns>
         /// <remarks>
         /// If the ViewModel is not initialized, the method returns immediately.
-        /// Otherwise, it acquires the initialization lock, calls <see cref="OnUninitializeAsync"/>,
+        /// Otherwise, it acquires the initialization lock, calls <see cref="UninitializeAsyncCore"/>,
         /// updates the initialized state, and notifies property change after releasing the lock.
         /// </remarks>
         public async Task UninitializeAsync(CancellationToken cancellationToken = default)
@@ -231,7 +245,7 @@ namespace Minimal.Mvvm
             {
                 if (!_isInitialized) return;
 
-                await OnUninitializeAsync(cancellationToken);
+                await UninitializeAsyncCore(cancellationToken);
                 _isInitialized = false;
             }
             finally
@@ -248,7 +262,7 @@ namespace Minimal.Mvvm
         /// </summary>
         /// <param name="cancellationToken">Cancellation token to cancel the initialization process.</param>
         /// <returns>A task that represents the asynchronous initialization operation.</returns>
-        protected virtual Task OnInitializeAsync(CancellationToken cancellationToken)
+        protected virtual Task InitializeAsyncCore(CancellationToken cancellationToken)
         {
             return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
         }
@@ -259,7 +273,7 @@ namespace Minimal.Mvvm
         /// </summary>
         /// <param name="cancellationToken">Cancellation token to cancel the uninitialization process.</param>
         /// <returns>A task that represents the asynchronous uninitialization operation.</returns>
-        protected virtual Task OnUninitializeAsync(CancellationToken cancellationToken)
+        protected virtual Task UninitializeAsyncCore(CancellationToken cancellationToken)
         {
             return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
         }

@@ -12,7 +12,7 @@ namespace Minimal.Mvvm.Windows
     /// </summary>
     public sealed class BehaviorCollection : FreezableCollection<Behavior>
     {
-        private readonly List<Behavior> _snapshot = new();
+        private readonly List<Behavior> _snapshot = [];
         private DependencyObject? _associatedObject;
 
         /// <summary>

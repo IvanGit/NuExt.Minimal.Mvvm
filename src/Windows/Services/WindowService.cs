@@ -11,6 +11,11 @@ namespace Minimal.Mvvm.Windows
     public interface IWindowService
     {
         /// <summary>
+        /// Gets the Window associated with this service.
+        /// </summary>
+        Window? Window { get; }
+
+        /// <summary>
         /// Gets a value indicating whether the window is closed.
         /// </summary>
         bool IsClosed { get; }
