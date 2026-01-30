@@ -4,11 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if NETFRAMEWORK || WINDOWS
-using System.Windows;
-using System.Windows.Threading;
-#endif
-
 namespace Minimal.Mvvm
 {
     /// <summary>
@@ -28,26 +23,6 @@ namespace Minimal.Mvvm
         }
 
         #region Properties
-
-#if NETFRAMEWORK || WINDOWS
-        /// <summary>
-        /// Gets the dispatcher associated with the UI thread.
-        /// </summary>
-        public Dispatcher Dispatcher { get; } = Dispatcher.CurrentDispatcher;
-
-        private static bool? s_isInDesignMode;
-        /// <summary>
-        /// Gets a value indicating whether the ViewModel is in design mode.
-        /// </summary>
-        public static bool IsInDesignMode
-        {
-            get
-            {
-                s_isInDesignMode ??= (bool)DesignerProperties.IsInDesignModeProperty.GetMetadata(typeof(DependencyObject)).DefaultValue;
-                return s_isInDesignMode.Value;
-            }
-        }
-#endif
 
         private volatile bool _isInitialized;
         /// <summary>
@@ -105,12 +80,7 @@ namespace Minimal.Mvvm
         /// <summary>
         /// Gets the thread on which the current instance was created.
         /// </summary>
-        public Thread Thread
-#if NETFRAMEWORK || WINDOWS
-            => Dispatcher.Thread;
-#else
-        { get; } = Thread.CurrentThread;
-#endif
+        public Thread Thread { get; } = Thread.CurrentThread;
 
         #endregion
 
@@ -123,11 +93,7 @@ namespace Minimal.Mvvm
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool CheckAccess()
         {
-#if NETFRAMEWORK || WINDOWS
-            return Dispatcher.CheckAccess();
-#else
             return Thread == Thread.CurrentThread;
-#endif
         }
 
         /// <summary>

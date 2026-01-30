@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0;net10.0;net10.0-windows;net9.0;net9.0-windows;net8.0;net8.0-windows;net462</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net10.0;net9.0;net8.0;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <UseWPF Condition="'$(TargetFramework)' == 'net10.0-windows' or '$(TargetFramework)' == 'net9.0-windows' or '$(TargetFramework)' == 'net8.0-windows' or '$(TargetFramework)' == 'net462'">true</UseWPF>
     <ImplicitUsings>disable</ImplicitUsings>
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release' or '$(Configuration)' == 'Sources'">true</GeneratePackageOnBuild>
@@ -18,10 +17,7 @@ Minimal.Mvvm.CompositeCommand
 Minimal.Mvvm.RelayCommand
 Minimal.Mvvm.RelayCommand&lt;T&gt;
 Minimal.Mvvm.ServiceProvider
-Minimal.Mvvm.ViewModelBase
-Minimal.Mvvm.Windows.EventTrigger
-Minimal.Mvvm.Windows.KeyTrigger
-Minimal.Mvvm.Windows.WindowService</Description>
+Minimal.Mvvm.ViewModelBase</Description>
     <Version>0.6.0</Version>
     <RootNamespace>Minimal.Mvvm</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
