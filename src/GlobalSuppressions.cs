@@ -6,7 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Style", "IDE0130:Namespace does not match folder structure", Justification = "<Pending>", Scope = "namespace", Target = "~N:Minimal.Mvvm")]
-#if NETFRAMEWORK || WINDOWS
-[assembly: SuppressMessage("Style", "IDE0130:Namespace does not match folder structure", Justification = "<Pending>", Scope = "namespace", Target = "~N:Minimal.Mvvm.Windows")]
-#endif
 [assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:Minimal.Mvvm")]

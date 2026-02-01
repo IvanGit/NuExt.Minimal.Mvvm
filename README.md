@@ -27,11 +27,6 @@
 - **Service Provider Integration**:
   - **`Minimal.Mvvm.ServiceProvider`**: A service provider class that allows for easy registration and resolution of services, facilitating dependency injection within your application.
 
-- **Interactivity Support**:
-  - **`Minimal.Mvvm.Windows.EventTrigger`**: Executes a command in response to an event, with support for converting event arguments before passing them to the command or passing the event arguments directly.
-  - **`Minimal.Mvvm.Windows.KeyTrigger`**: Executes a command in response to a specific key gesture, with default association to the UIElement's KeyUp event.
-  - **`Minimal.Mvvm.Windows.WindowService`**: Provides a service for interacting with a Window associated with a FrameworkElement.
-
 ### Recommended Companion Package
 
 For an enhanced development experience, we highly recommend using the [`NuExt.Minimal.Mvvm.SourceGenerator`](https://www.nuget.org/packages/NuExt.Minimal.Mvvm.SourceGenerator) package alongside this framework. It provides a source generator that produces boilerplate code for your ViewModels at compile time, significantly reducing the amount of repetitive coding tasks and allowing you to focus more on the application-specific logic.
@@ -159,80 +154,6 @@ public class MyViewModel : ViewModelBase
         });
     }
 }
-```
-
-#### Example Using Interactivity in XAML
-
-You can use `EventTrigger` and `KeyTrigger` in your XAML to bind events and key gestures to commands in your ViewModel. Here's an example of a window that binds `ContentRendered`, `Loaded` events, and a `CTRL+O` key gesture to commands in the ViewModel.
-
-##### ViewModel
-
-```csharp
-public class MyViewModel : ViewModelBase
-{
-    public ICommand CloseCommand { get; }
-    public ICommand ContentRenderedCommand { get; }
-    public ICommand LoadedCommand { get; }
-    public ICommand OpenFileCommand { get; }
-    public WindowService? WindowService => GetService<WindowService>();
-
-    public MyViewModel()
-    {
-        CloseCommand = new RelayCommand(Close, CanClose);
-        ContentRenderedCommand = new RelayCommand(OnContentRendered);
-        LoadedCommand = new RelayCommand(OnLoaded);
-        OpenFileCommand = new RelayCommand(OnOpenFile);
-    }
-
-    private bool CanClose()
-    {
-        return true;
-    }
-
-    private void Close()
-    {
-        WindowService?.Close();//Closes the window.
-    }
-
-    private void OnContentRendered()
-    {
-        // Logic when content is rendered
-    }
-
-    private void OnLoaded()
-    {
-        // Logic when window is loaded
-    }
-
-    private void OnOpenFile()
-    {
-        // Logic to open a file
-    }
-}
-```
-
-##### XAML
-
-```xml
-<Window x:Class="YourNamespace.MyWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:minimal="clr-namespace:Minimal.Mvvm.Windows;assembly=NuExt.Minimal.Mvvm"
-        Title="My Window">
-    <Window.DataContext>
-        <local:MyViewModel />
-    </Window.DataContext>
-    <minimal:Interaction.Behaviors>
-        <minimal:WindowService/>
-        <minimal:EventTrigger EventName="ContentRendered" Command="{Binding ContentRenderedCommand}"/>
-        <minimal:EventTrigger EventName="Loaded" Command="{Binding LoadedCommand}" />
-        <minimal:KeyTrigger Gesture="CTRL+O" Command="{Binding OpenFileCommand}" />
-        <minimal:KeyTrigger Gesture="CTRL+X" Command="{Binding CloseCommand}" />
-    </minimal:Interaction.Behaviors>
-    <Grid>
-        <!-- Your UI elements here -->
-    </Grid>
-</Window>
 ```
 
 #### Example Usage with Source Generator

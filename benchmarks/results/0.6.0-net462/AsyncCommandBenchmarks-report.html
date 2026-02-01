@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Minimal.Mvvm.Benchmarks.AsyncCommandBenchmarks-20260201-145720</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 10 (10.0.19045.6456/22H2/2022Update)
+Intel Core i7-8700T CPU 2.40GHz (Coffee Lake), 1 CPU, 12 logical and 6 physical cores
+  [Host]     : .NET Framework 4.8.1 (4.8.9310.0), X64 RyuJIT VectorSize=256
+  DefaultJob : .NET Framework 4.8.1 (4.8.9310.0), X64 RyuJIT VectorSize=256
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method                                         </th><th>ConcurrentTasks</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Gen0</th><th>Gen1</th><th>Gen2</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>ExecuteAsync_MultipleConcurrentTasks_NoCancellation</td><td>1</td><td>110.21 ms</td><td>0.462 ms</td><td>0.385 ms</td><td>-</td><td>-</td><td>-</td><td>4.8 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_WithCancellation</td><td>1</td><td>15.90 ms</td><td>0.243 ms</td><td>0.228 ms</td><td>-</td><td>-</td><td>-</td><td>5.98 KB</td>
+</tr><tr><td>Cancel_Performance_UnderLoad</td><td>1</td><td>15.85 ms</td><td>0.103 ms</td><td>0.081 ms</td><td>-</td><td>-</td><td>-</td><td>5.75 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_NoCancellation</td><td>10</td><td>110.42 ms</td><td>0.615 ms</td><td>0.514 ms</td><td>-</td><td>-</td><td>-</td><td>36.8 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_WithCancellation</td><td>10</td><td>15.95 ms</td><td>0.237 ms</td><td>0.210 ms</td><td>-</td><td>-</td><td>-</td><td>46 KB</td>
+</tr><tr><td>Cancel_Performance_UnderLoad</td><td>10</td><td>16.00 ms</td><td>0.300 ms</td><td>0.295 ms</td><td>-</td><td>-</td><td>-</td><td>44.18 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_NoCancellation</td><td>100</td><td>110.41 ms</td><td>0.488 ms</td><td>0.407 ms</td><td>-</td><td>-</td><td>-</td><td>196.8 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_WithCancellation</td><td>100</td><td>17.85 ms</td><td>0.663 ms</td><td>1.955 ms</td><td>62.5000</td><td>-</td><td>-</td><td>441.26 KB</td>
+</tr><tr><td>Cancel_Performance_UnderLoad</td><td>100</td><td>17.75 ms</td><td>0.567 ms</td><td>1.670 ms</td><td>62.5000</td><td>-</td><td>-</td><td>426.5 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_NoCancellation</td><td>1000</td><td>110.43 ms</td><td>0.831 ms</td><td>0.737 ms</td><td>200.0000</td><td>-</td><td>-</td><td>1875.23 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_WithCancellation</td><td>1000</td><td>60.59 ms</td><td>1.203 ms</td><td>1.564 ms</td><td>666.6667</td><td>333.3333</td><td>-</td><td>4398.31 KB</td>
+</tr><tr><td>Cancel_Performance_UnderLoad</td><td>1000</td><td>59.30 ms</td><td>1.130 ms</td><td>1.345 ms</td><td>666.6667</td><td>333.3333</td><td>-</td><td>4255.26 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_NoCancellation</td><td>10000</td><td>153.30 ms</td><td>3.043 ms</td><td>4.166 ms</td><td>3250.0000</td><td>1250.0000</td><td>500.0000</td><td>18630.04 KB</td>
+</tr><tr><td>ExecuteAsync_MultipleConcurrentTasks_WithCancellation</td><td>10000</td><td>151.21 ms</td><td>2.974 ms</td><td>2.782 ms</td><td>4750.0000</td><td>2000.0000</td><td>750.0000</td><td>24690.18 KB</td>
+</tr><tr><td>Cancel_Performance_UnderLoad</td><td>10000</td><td>146.31 ms</td><td>2.910 ms</td><td>3.114 ms</td><td>4000.0000</td><td>1500.0000</td><td>500.0000</td><td>23454.4 KB</td>
+</tr></tbody></table>
+</body>
+</html>
